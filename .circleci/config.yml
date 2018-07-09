@@ -19,7 +19,8 @@ jobs:
 
   syncRecordsets:
     environment:
-      TYPE: "host"
+      SOURCE_REGION: "cn-north-1"
+      TARGET_REGION: "eu-central-1"
     machine: true
     steps:
     - checkout
