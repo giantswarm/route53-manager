@@ -225,6 +225,25 @@ func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []string)
 }
 
 func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []string) error {
+	for _, target := range targetStacks {
+		found := false
+		targetClusterName := extractClusterName(target)
+		for _, source := range sourceStacks {
+			sourceClusterName := extractClusterName(source)
+			if sourceClusterName == targetClusterName {
+				found = true
+				break
+			}
+		}
+		if !found {
+			err := m.deleteTargetStack(target)
+			if err != nil {
+				m.logger.Log("level", "debug", "message", fmt.Sprintf("%q stack deleted", target))
+			} else {
+				m.logger.Log("level", "debug", "message", fmt.Sprintf("failed to delete %q stack", target))
+			}
+		}
+	}
 	return nil
 }
 
@@ -320,6 +339,17 @@ func (m *Manager) createTargetStack(targetStackName string, data *sourceStackDat
 		TimeoutInMinutes: aws.Int64(2),
 	}
 	_, err = m.targetClient.CloudFormation.CreateStack(input)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+	return nil
+}
+
+func (m *Manager) deleteTargetStack(targetStackName string) error {
+	input := &cloudformation.DeleteStackInput{
+		StackName: aws.String(targetStackName),
+	}
+	_, err := m.targetClient.CloudFormation.DeleteStack(input)
 	if err != nil {
 		return microerror.Mask(err)
 	}
