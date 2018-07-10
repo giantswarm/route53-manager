@@ -25,10 +25,21 @@ jobs:
     steps:
     - checkout
 
+    - run: |
+        wget -q $(curl -sS -H "Authorization: token $RELEASE_TOKEN" https://api.github.com/repos/giantswarm/route53-manager/releases/latest | grep browser_download_url | head -n 1 | cut -d '"' -f 4)
+        chmod +x ./route53-manager
+
+    - run: ./route53-manager
+
+  github-release:
+    machine: true
+    steps:
+    - checkout
+
     - attach_workspace:
         at: .
 
-    - run: ./route53-manager
+    - run: ./github-release.sh $CIRCLE_PROJECT_REPONAME $CIRCLE_SHA1 $PERSONAL_ACCESS_TOKEN
 
 
 workflows:
@@ -37,73 +48,21 @@ workflows:
   build:
     jobs:
     - build
+    - github-release:
+        requires:
+        - build
+        filters:
+          branches:
+            only: master
 
   sync:
     triggers:
       - schedule:
-          cron: "0 * * * *"
-          filters:
-            branches:
-              only: master
-      - schedule:
-          cron: "5 * * * *"
-          filters:
-            branches:
-              only: master
-      - schedule:
-          cron: "10 * * * *"
-          filters:
-            branches:
-              only: master
-      - schedule:
-          cron: "15 * * * *"
-          filters:
-            branches:
-              only: master
-      - schedule:
-          cron: "20 * * * *"
-          filters:
-            branches:
-              only: master
-      - schedule:
-          cron: "25 * * * *"
-          filters:
-            branches:
-              only: master
-      - schedule:
-          cron: "30 * * * *"
-          filters:
-            branches:
-              only: master
-      - schedule:
-          cron: "35 * * * *"
-          filters:
-            branches:
-              only: master
-      - schedule:
-          cron: "40 * * * *"
-          filters:
-            branches:
-              only: master
-      - schedule:
-          cron: "45 * * * *"
-          filters:
-            branches:
-              only: master
-      - schedule:
-          cron: "50 * * * *"
-          filters:
-            branches:
-              only: master
-      - schedule:
-          cron: "55 * * * *"
+          cron: "0,5,10,15,20,25,30,35,40,45,50,55 * * * *"
           filters:
             branches:
               only: master
 
 
     jobs:
-    - build
-    - syncRecordsets:
-        requires:
-        - build
+    - syncRecordsets
