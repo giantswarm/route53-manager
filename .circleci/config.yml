@@ -1,0 +1,68 @@
+version: 2
+jobs:
+  build:
+    machine: true
+    steps:
+    - checkout
+
+    - run: |
+        wget -q $(curl -sS https://api.github.com/repos/giantswarm/architect/releases/latest | grep browser_download_url | head -n 1 | cut -d '"' -f 4)
+        chmod +x ./architect
+        ./architect version
+
+    - run: ./architect build
+
+    - persist_to_workspace:
+        root: .
+        paths:
+        - ./route53-manager
+
+  syncRecordsets:
+    environment:
+      SOURCE_REGION: "cn-north-1"
+      TARGET_REGION: "eu-central-1"
+    machine: true
+    steps:
+    - checkout
+
+    - run: |
+        wget -q $(curl -sS -H "Authorization: token $RELEASE_TOKEN" https://api.github.com/repos/giantswarm/route53-manager/releases/latest | grep browser_download_url | head -n 1 | cut -d '"' -f 4)
+        chmod +x ./route53-manager
+
+    - run: ./route53-manager
+
+  github-release:
+    machine: true
+    steps:
+    - checkout
+
+    - attach_workspace:
+        at: .
+
+    - run: ./github-release.sh $CIRCLE_PROJECT_REPONAME $CIRCLE_SHA1 $PERSONAL_ACCESS_TOKEN
+
+
+workflows:
+  version: 2
+
+  build:
+    jobs:
+    - build
+    - github-release:
+        requires:
+        - build
+        filters:
+          branches:
+            only: master
+
+  sync:
+    triggers:
+      - schedule:
+          cron: "0,5,10,15,20,25,30,35,40,45,50,55 * * * *"
+          filters:
+            branches:
+              only: master
+
+
+    jobs:
+    - syncRecordsets
