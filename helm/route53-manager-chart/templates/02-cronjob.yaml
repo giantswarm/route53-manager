@@ -1,0 +1,29 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: route53-manager
+spec:
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          volumes:
+          - name: route53-manager-secret
+            secret:
+              secretName: route53-manager-secret
+              items:
+              - key: secret.yaml
+                path: secret.yaml
+          containers:
+          - name: route53-manager
+            image: quay.io/giantswarm/route53-manager:[[ .SHA ]]
+            volumeMounts:
+            - name: route53-manager-secret
+              mountPath: /var/run/route53-manager/secret/
+              readOnly: true
+            args:
+            - sync
+            - --config.dirs=/var/run/route53-manager/secret/
+            - --config.files=secret
+          restartPolicy: OnFailure
