@@ -5,6 +5,7 @@ import (
 
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
+
 	"github.com/giantswarm/route53-manager/command"
 )
 
