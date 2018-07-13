@@ -27,4 +27,4 @@ spec:
             - sync
             - --config.dirs=/var/run/route53-manager/secret/
             - --config.files=secret
-          restartPolicy: OnFailure
+          restartPolicy: Never

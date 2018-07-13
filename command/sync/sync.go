@@ -97,14 +97,14 @@ func (c *Command) Execute(cmd *cobra.Command, args []string) {
 
 func (c *Command) execute() error {
 	targetClientConfig := &client.Config{
-		AccessKeyID:     f.Service.Target.AccessKey,
-		AccessKeySecret: f.Service.Target.SecretAccessKey,
-		Region:          f.Service.Target.Region,
+		AccessKeyID:     c.viper.GetString(f.Service.Target.AccessKey),
+		AccessKeySecret: c.viper.GetString(f.Service.Target.SecretAccessKey),
+		Region:          c.viper.GetString(f.Service.Target.Region),
 	}
 	sourceClientConfig := &client.Config{
-		AccessKeyID:     f.Service.Source.AccessKey,
-		AccessKeySecret: f.Service.Source.SecretAccessKey,
-		Region:          f.Service.Source.Region,
+		AccessKeyID:     c.viper.GetString(f.Service.Source.AccessKey),
+		AccessKeySecret: c.viper.GetString(f.Service.Source.SecretAccessKey),
+		Region:          c.viper.GetString(f.Service.Source.Region),
 	}
 
 	cfg := &recordset.Config{
@@ -112,8 +112,8 @@ func (c *Command) execute() error {
 		SourceClient: client.NewClients(sourceClientConfig),
 		TargetClient: client.NewClients(targetClientConfig),
 
-		TargetHostedZoneID:   f.Service.Target.HostedZone.ID,
-		TargetHostedZoneName: f.Service.Target.HostedZone.Name,
+		TargetHostedZoneID:   c.viper.GetString(f.Service.Target.HostedZone.ID),
+		TargetHostedZoneName: c.viper.GetString(f.Service.Target.HostedZone.Name),
 	}
 
 	m, err := recordset.NewManager(cfg)
