@@ -4,7 +4,7 @@ metadata:
   name: route53-manager
   namespace: giantswarm
 spec:
-  schedule: "5,10,15,20,25,30,35,40,45,50,55,00 * * * *"
+  schedule: "*/5 * * * *"
   jobTemplate:
     spec:
       template:
