@@ -67,8 +67,8 @@ Resources:
 
 type Config struct {
 	Logger       micrologger.Logger
-	SourceClient *client.Clients
-	TargetClient *client.Clients
+	SourceClient client.SourceInterface
+	TargetClient client.TargetInterface
 
 	TargetHostedZoneID   string
 	TargetHostedZoneName string
@@ -76,8 +76,8 @@ type Config struct {
 
 type Manager struct {
 	logger       micrologger.Logger
-	sourceClient *client.Clients
-	targetClient *client.Clients
+	sourceClient client.SourceInterface
+	targetClient client.TargetInterface
 
 	targetHostedZoneID   string
 	targetHostedZoneName string
@@ -156,7 +156,7 @@ func (m *Manager) Sync() error {
 }
 
 func (m *Manager) sourceStacks() ([]string, error) {
-	result, err := getStackNames(m.sourceClient.CloudFormation, sourceStackNameRE)
+	result, err := getStackNames(m.sourceClient, sourceStackNameRE)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
@@ -165,14 +165,14 @@ func (m *Manager) sourceStacks() ([]string, error) {
 }
 
 func (m *Manager) targetStacks() ([]string, error) {
-	result, err := getStackNames(m.targetClient.CloudFormation, targetStackNameRE)
+	result, err := getStackNames(m.targetClient, targetStackNameRE)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
 	return result, nil
 }
 
-func getStackNames(cl *cloudformation.CloudFormation, re *regexp.Regexp) ([]string, error) {
+func getStackNames(cl client.StackLister, re *regexp.Regexp) ([]string, error) {
 	input := &cloudformation.ListStacksInput{
 		StackStatusFilter: []*string{
 			aws.String(cloudformation.StackStatusCreateComplete),
@@ -238,9 +238,9 @@ func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []string) 
 		if !found {
 			err := m.deleteTargetStack(target)
 			if err != nil {
-				m.logger.Log("level", "debug", "message", fmt.Sprintf("%q stack deleted", target))
+				m.logger.Log("level", "debug", "message", fmt.Sprintf("failed to delete %q stack", target), "stack", fmt.Sprintf("%v", err))
 			} else {
-				m.logger.Log("level", "debug", "message", fmt.Sprintf("failed to delete %q stack", target))
+				m.logger.Log("level", "debug", "message", fmt.Sprintf("%q stack deleted", target))
 			}
 		}
 	}
@@ -283,7 +283,7 @@ func (m *Manager) getELBDNS(elbName string) (string, error) {
 			aws.String(elbName),
 		},
 	}
-	output, err := m.sourceClient.ELB.DescribeLoadBalancers(input)
+	output, err := m.sourceClient.DescribeLoadBalancers(input)
 	if err != nil {
 		return "", microerror.Mask(err)
 	}
@@ -306,7 +306,7 @@ func (m *Manager) getInstanceDNS(nameTag string) (string, error) {
 			},
 		},
 	}
-	output, err := m.sourceClient.EC2.DescribeInstances(input)
+	output, err := m.sourceClient.DescribeInstances(input)
 	if err != nil {
 		return "", microerror.Mask(err)
 	}
@@ -338,7 +338,7 @@ func (m *Manager) createTargetStack(targetStackName string, data *sourceStackDat
 		TemplateBody:     aws.String(templateBody.String()),
 		TimeoutInMinutes: aws.Int64(2),
 	}
-	_, err = m.targetClient.CloudFormation.CreateStack(input)
+	_, err = m.targetClient.CreateStack(input)
 	if err != nil {
 		return microerror.Mask(err)
 	}
@@ -349,7 +349,7 @@ func (m *Manager) deleteTargetStack(targetStackName string) error {
 	input := &cloudformation.DeleteStackInput{
 		StackName: aws.String(targetStackName),
 	}
-	_, err := m.targetClient.CloudFormation.DeleteStack(input)
+	_, err := m.targetClient.DeleteStack(input)
 	if err != nil {
 		return microerror.Mask(err)
 	}
