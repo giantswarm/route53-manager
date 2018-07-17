@@ -18,19 +18,35 @@ type Config struct {
 	Region          string
 }
 
+type StackLister interface {
+	ListStacks(*cloudformation.ListStacksInput) (*cloudformation.ListStacksOutput, error)
+}
+
+type SourceInterface interface {
+	StackLister
+	DescribeInstances(*ec2.DescribeInstancesInput) (*ec2.DescribeInstancesOutput, error)
+	DescribeLoadBalancers(*elb.DescribeLoadBalancersInput) (*elb.DescribeLoadBalancersOutput, error)
+}
+
+type TargetInterface interface {
+	StackLister
+	CreateStack(*cloudformation.CreateStackInput) (*cloudformation.CreateStackOutput, error)
+	DeleteStack(*cloudformation.DeleteStackInput) (*cloudformation.DeleteStackOutput, error)
+}
+
 type Clients struct {
-	CloudFormation *cloudformation.CloudFormation
-	EC2            ec2iface.EC2API
-	ELB            elbiface.ELBAPI
+	*cloudformation.CloudFormation
+	ec2iface.EC2API
+	elbiface.ELBAPI
 }
 
 func NewClients(config *Config) *Clients {
 	s := newSession(config)
 
 	return &Clients{
-		CloudFormation: cloudformation.New(s),
-		EC2:            ec2.New(s),
-		ELB:            elb.New(s),
+		cloudformation.New(s),
+		ec2.New(s),
+		elb.New(s),
 	}
 }
 
