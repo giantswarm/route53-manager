@@ -23,6 +23,7 @@
     "aws/signer/v4",
     "internal/sdkio",
     "internal/sdkrand",
+    "internal/sdkuri",
     "internal/shareddefaults",
     "private/protocol",
     "private/protocol/ec2query",
@@ -37,8 +38,8 @@
     "service/elb/elbiface",
     "service/sts"
   ]
-  revision = "16cb9f62f8a8b7af4f38725567f5ce762e1d562b"
-  version = "v1.14.21"
+  revision = "e3f7540480e3b9a733845f9fa5d35d7484bac3cd"
+  version = "v1.15.2"
 
 [[projects]]
   name = "github.com/fsnotify/fsnotify"
@@ -50,13 +51,13 @@
   branch = "master"
   name = "github.com/giantswarm/microerror"
   packages = ["."]
-  revision = "325932fa68e70dd4464598f11e2f710ac1aaec46"
+  revision = "a8d5d4f526c526b4b773062958847fe7e0b7f449"
 
 [[projects]]
   branch = "master"
   name = "github.com/giantswarm/microkit"
   packages = ["flag"]
-  revision = "19f5fe4a59000232718a4e563090d8346bd06ad9"
+  revision = "ce14380d3198ff00c82888ee3ed7e9d0efaa383a"
 
 [[projects]]
   branch = "master"
@@ -65,13 +66,13 @@
     ".",
     "loggermeta"
   ]
-  revision = "39f8cfb7c2583edb28552d9e4b12193e5bddaf60"
+  revision = "d757f42e4a3efca1fe82e633579b28c586e08698"
 
 [[projects]]
   name = "github.com/go-ini/ini"
   packages = ["."]
-  revision = "06f5f3d67269ccec1fe5fe4134ba6e982984f7f5"
-  version = "v1.37.0"
+  revision = "358ee7663966325963d4e8b2e1fbd570c5195153"
+  version = "v1.38.1"
 
 [[projects]]
   name = "github.com/go-kit/kit"
@@ -141,7 +142,7 @@
   branch = "master"
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
-  revision = "bb74f1db0675b241733089d5a1faa5dd8b0ef57b"
+  revision = "f15292f7a699fcc1a38a80977f80a046874ba8ac"
 
 [[projects]]
   name = "github.com/pelletier/go-toml"
@@ -192,7 +193,7 @@
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "1b2967e3c290b7c545b3db0deeda16e9be4f98a2"
+  revision = "bd9dbc187b6e1dacfdd2722a87e83093c2d7bd6e"
 
 [[projects]]
   name = "golang.org/x/text"
