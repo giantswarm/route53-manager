@@ -33,6 +33,7 @@ type TargetInterface interface {
 	StackDescribeLister
 	CreateStack(*cloudformation.CreateStackInput) (*cloudformation.CreateStackOutput, error)
 	DeleteStack(*cloudformation.DeleteStackInput) (*cloudformation.DeleteStackOutput, error)
+	UpdateStack(*cloudformation.UpdateStackInput) (*cloudformation.UpdateStackOutput, error)
 }
 
 type Clients struct {
