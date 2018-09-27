@@ -149,6 +149,7 @@ func getStackNames(cl client.StackDescribeLister, re *regexp.Regexp, installatio
 
 	var result []string
 
+OUTER:
 	for _, item := range output.StackSummaries {
 		// filter stack by name.
 		if !validateStackName(*item, re) {
@@ -165,7 +166,7 @@ func getStackNames(cl client.StackDescribeLister, re *regexp.Regexp, installatio
 		}
 		for _, stack := range stacks.Stacks {
 			if !validateStackInstallationTag(*stack, installation) {
-				continue
+				continue OUTER
 			}
 		}
 
