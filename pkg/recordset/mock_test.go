@@ -8,6 +8,10 @@ import (
 
 type sourceClientMock struct{}
 
+func (s *sourceClientMock) DescribeStacks(*cloudformation.DescribeStacksInput) (*cloudformation.DescribeStacksOutput, error) {
+	return nil, nil
+}
+
 func (s *sourceClientMock) ListStacks(*cloudformation.ListStacksInput) (*cloudformation.ListStacksOutput, error) {
 	return nil, nil
 }
@@ -21,6 +25,10 @@ func (s *sourceClientMock) DescribeLoadBalancers(*elb.DescribeLoadBalancersInput
 
 type targetClientMock struct {
 	deletedStacks []string
+}
+
+func (s *targetClientMock) DescribeStacks(*cloudformation.DescribeStacksInput) (*cloudformation.DescribeStacksOutput, error) {
+	return nil, nil
 }
 
 func (t *targetClientMock) ListStacks(*cloudformation.ListStacksInput) (*cloudformation.ListStacksOutput, error) {

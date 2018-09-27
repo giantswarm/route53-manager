@@ -127,7 +127,7 @@ func (m *Manager) targetStacks() ([]string, error) {
 	return result, nil
 }
 
-func getStackNames(cl client.StackLister, re *regexp.Regexp) ([]string, error) {
+func getStackNames(cl client.StackDescribeLister, re *regexp.Regexp) ([]string, error) {
 	input := &cloudformation.ListStacksInput{
 		StackStatusFilter: []*string{
 			aws.String(cloudformation.StackStatusCreateComplete),
