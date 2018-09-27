@@ -24,6 +24,7 @@ const (
 
 type Config struct {
 	Logger       micrologger.Logger
+	Installation string
 	SourceClient client.SourceInterface
 	TargetClient client.TargetInterface
 
@@ -33,6 +34,7 @@ type Config struct {
 
 type Manager struct {
 	logger       micrologger.Logger
+	installation string
 	sourceClient client.SourceInterface
 	targetClient client.TargetInterface
 
@@ -63,6 +65,9 @@ func NewManager(c *Config) (*Manager, error) {
 	if c.Logger == nil {
 		return nil, microerror.Maskf(invalidConfigError, "%T.Logger must not be empty", c)
 	}
+	if c.Installation == "" {
+		return nil, microerror.Maskf(invalidConfigError, "%T.Installation must not be empty", c)
+	}
 	if c.SourceClient == nil {
 		return nil, microerror.Maskf(invalidConfigError, "%T.SourceClient must not be empty", c)
 	}
@@ -78,6 +83,7 @@ func NewManager(c *Config) (*Manager, error) {
 
 	m := &Manager{
 		logger:       c.Logger,
+		installation: c.Installation,
 		sourceClient: c.SourceClient,
 		targetClient: c.TargetClient,
 
