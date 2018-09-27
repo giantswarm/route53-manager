@@ -151,27 +151,42 @@ func getStackNames(cl client.StackDescribeLister, re *regexp.Regexp, installatio
 
 	for _, item := range output.StackSummaries {
 		// filter stack by name.
-		if re.Match([]byte(*item.StackName)) {
-			// filter stack by installation tag.
-			describeInput := &cloudformation.DescribeStacksInput{
-				StackName: aws.String(*item.StackId),
-			}
-			stacks, err := cl.DescribeStacks(describeInput)
-			if err != nil {
-				return nil, microerror.Mask(err)
-			}
+		if !validateStackName(*item, re) {
+			continue
+		}
 
-			for _, stack := range stacks.Stacks {
-				for _, tag := range stack.Tags {
-					if *tag.Key == installationTag && *tag.Value == installation {
-						result = append(result, *item.StackName)
-					}
-				}
+		// filter stack by installation tag.
+		describeInput := &cloudformation.DescribeStacksInput{
+			StackName: aws.String(*item.StackId),
+		}
+		stacks, err := cl.DescribeStacks(describeInput)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+		for _, stack := range stacks.Stacks {
+			if !validateStackInstallationTag(*stack, installation) {
+				continue
 			}
 		}
+
+		result = append(result, *item.StackName)
 	}
 
 	return result, nil
+}
+
+func validateStackName(stack cloudformation.StackSummary, re *regexp.Regexp) bool {
+	return re.Match([]byte(*stack.StackName))
+}
+
+func validateStackInstallationTag(stack cloudformation.Stack, installation string) bool {
+	for _, tag := range stack.Tags {
+		if *tag.Key == installationTag && *tag.Value == installation {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []string) error {
