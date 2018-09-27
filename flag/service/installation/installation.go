@@ -1,5 +1,5 @@
 package installation
 
-type Config struct {
+type Installation struct {
 	Name string
 }

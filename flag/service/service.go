@@ -7,7 +7,7 @@ import (
 )
 
 type Service struct {
-	Installation installation.Config
+	Installation installation.Installation
 	Source       source.Source
 	Target       target.Target
 }
