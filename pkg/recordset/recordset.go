@@ -119,7 +119,7 @@ func (m *Manager) Sync() error {
 }
 
 func (m *Manager) sourceStacks() ([]string, error) {
-	result, err := getStackNames(m.sourceClient, sourceStackNameRE)
+	result, err := getStackNames(m.sourceClient, sourceStackNameRE, m.installation)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
@@ -128,14 +128,14 @@ func (m *Manager) sourceStacks() ([]string, error) {
 }
 
 func (m *Manager) targetStacks() ([]string, error) {
-	result, err := getStackNames(m.targetClient, targetStackNameRE)
+	result, err := getStackNames(m.targetClient, targetStackNameRE, m.installation)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
 	return result, nil
 }
 
-func getStackNames(cl client.StackDescribeLister, re *regexp.Regexp) ([]string, error) {
+func getStackNames(cl client.StackDescribeLister, re *regexp.Regexp, installation string) ([]string, error) {
 	input := &cloudformation.ListStacksInput{
 		StackStatusFilter: []*string{
 			aws.String(cloudformation.StackStatusCreateComplete),
@@ -163,7 +163,7 @@ func getStackNames(cl client.StackDescribeLister, re *regexp.Regexp) ([]string, 
 
 			for _, stack := range stacks.Stacks {
 				for _, tag := range stack.Tags {
-					if *tag.Key == installationTag && *tag.Value == "<installation value>" {
+					if *tag.Key == installationTag && *tag.Value == installation {
 						result = append(result, *item.StackName)
 					}
 				}
