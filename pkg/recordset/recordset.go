@@ -18,6 +18,8 @@ import (
 const (
 	sourceStackNamePattern = "cluster-.*-guest-main"
 	targetStackNamePattern = "cluster-.*-guest-recordsets"
+
+	installationTag = "giantswarm.io/installation"
 )
 
 type Config struct {
@@ -142,8 +144,24 @@ func getStackNames(cl client.StackDescribeLister, re *regexp.Regexp) ([]string, 
 	var result []string
 
 	for _, item := range output.StackSummaries {
+		// filter stack by name.
 		if re.Match([]byte(*item.StackName)) {
-			result = append(result, *item.StackName)
+			// filter stack by installation tag.
+			describeInput := &cloudformation.DescribeStacksInput{
+				StackName: aws.String(*item.StackId),
+			}
+			stacks, err := cl.DescribeStacks(describeInput)
+			if err != nil {
+				return nil, microerror.Mask(err)
+			}
+
+			for _, stack := range stacks.Stacks {
+				for _, tag := range stack.Tags {
+					if *tag.Key == installationTag && *tag.Value == "<installation value>" {
+						result = append(result, *item.StackName)
+					}
+				}
+			}
 		}
 	}
 
