@@ -10,6 +10,12 @@ spec:
       template:
         spec:
           volumes:
+          - name: route53-manager-configmap
+            configMap:
+              name: route53-manager-configmap
+              items:
+              - key: config.yaml
+                path: config.yaml
           - name: route53-manager-secret
             secret:
               secretName: route53-manager-secret
@@ -20,11 +26,16 @@ spec:
           - name: route53-manager
             image: quay.io/giantswarm/route53-manager:[[ .SHA ]]
             volumeMounts:
+            - name: route53-manager-configmap
+              mountPath: /var/run/route53-manager/configmap/
+              readOnly: true
             - name: route53-manager-secret
               mountPath: /var/run/route53-manager/secret/
               readOnly: true
             args:
             - sync
+            - --config.dirs=/var/run/route53-manager/configmap/
             - --config.dirs=/var/run/route53-manager/secret/
+            - --config.files=config
             - --config.files=secret
           restartPolicy: Never

@@ -18,10 +18,13 @@ import (
 const (
 	sourceStackNamePattern = "cluster-.*-guest-main"
 	targetStackNamePattern = "cluster-.*-guest-recordsets"
+
+	installationTag = "giantswarm.io/installation"
 )
 
 type Config struct {
 	Logger       micrologger.Logger
+	Installation string
 	SourceClient client.SourceInterface
 	TargetClient client.TargetInterface
 
@@ -31,6 +34,7 @@ type Config struct {
 
 type Manager struct {
 	logger       micrologger.Logger
+	installation string
 	sourceClient client.SourceInterface
 	targetClient client.TargetInterface
 
@@ -61,6 +65,9 @@ func NewManager(c *Config) (*Manager, error) {
 	if c.Logger == nil {
 		return nil, microerror.Maskf(invalidConfigError, "%T.Logger must not be empty", c)
 	}
+	if c.Installation == "" {
+		return nil, microerror.Maskf(invalidConfigError, "%T.Installation must not be empty", c)
+	}
 	if c.SourceClient == nil {
 		return nil, microerror.Maskf(invalidConfigError, "%T.SourceClient must not be empty", c)
 	}
@@ -76,6 +83,7 @@ func NewManager(c *Config) (*Manager, error) {
 
 	m := &Manager{
 		logger:       c.Logger,
+		installation: c.Installation,
 		sourceClient: c.SourceClient,
 		targetClient: c.TargetClient,
 
@@ -111,7 +119,7 @@ func (m *Manager) Sync() error {
 }
 
 func (m *Manager) sourceStacks() ([]string, error) {
-	result, err := getStackNames(m.sourceClient, sourceStackNameRE)
+	result, err := getStackNames(m.sourceClient, sourceStackNameRE, m.installation)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
@@ -120,14 +128,14 @@ func (m *Manager) sourceStacks() ([]string, error) {
 }
 
 func (m *Manager) targetStacks() ([]string, error) {
-	result, err := getStackNames(m.targetClient, targetStackNameRE)
+	result, err := getStackNames(m.targetClient, targetStackNameRE, m.installation)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
 	return result, nil
 }
 
-func getStackNames(cl client.StackLister, re *regexp.Regexp) ([]string, error) {
+func getStackNames(cl client.StackDescribeLister, re *regexp.Regexp, installation string) ([]string, error) {
 	input := &cloudformation.ListStacksInput{
 		StackStatusFilter: []*string{
 			aws.String(cloudformation.StackStatusCreateComplete),
@@ -142,12 +150,43 @@ func getStackNames(cl client.StackLister, re *regexp.Regexp) ([]string, error) {
 	var result []string
 
 	for _, item := range output.StackSummaries {
-		if re.Match([]byte(*item.StackName)) {
-			result = append(result, *item.StackName)
+		// filter stack by name.
+		if !validStackName(*item, re) {
+			continue
 		}
+
+		// filter stack by installation tag.
+		describeInput := &cloudformation.DescribeStacksInput{
+			StackName: aws.String(*item.StackId),
+		}
+		stacks, err := cl.DescribeStacks(describeInput)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+		if !validStackInstallationTag(stacks, installation) {
+			continue
+		}
+
+		result = append(result, *item.StackName)
 	}
 
 	return result, nil
+}
+
+func validStackName(stack cloudformation.StackSummary, re *regexp.Regexp) bool {
+	return re.Match([]byte(*stack.StackName))
+}
+
+func validStackInstallationTag(stacks *cloudformation.DescribeStacksOutput, installation string) bool {
+	for _, stack := range stacks.Stacks {
+		for _, tag := range stack.Tags {
+			if *tag.Key == installationTag && *tag.Value == installation {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []string) error {

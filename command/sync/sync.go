@@ -49,6 +49,8 @@ func New(config Config) (*Command, error) {
 		Run:   newCommand.Execute,
 	}
 
+	newCommand.cobraCommand.PersistentFlags().String(f.Service.Installation.Name, "", "Installation name")
+
 	newCommand.cobraCommand.PersistentFlags().String(f.Service.Source.AccessKey, "", "Source account access key")
 	newCommand.cobraCommand.PersistentFlags().String(f.Service.Source.SecretAccessKey, "", "Source account secret access key")
 	newCommand.cobraCommand.PersistentFlags().String(f.Service.Source.Region, "", "Source account region")
@@ -96,6 +98,8 @@ func (c *Command) Execute(cmd *cobra.Command, args []string) {
 }
 
 func (c *Command) execute() error {
+	installationName := c.viper.GetString(f.Service.Installation.Name)
+
 	targetClientConfig := &client.Config{
 		AccessKeyID:     c.viper.GetString(f.Service.Target.AccessKey),
 		AccessKeySecret: c.viper.GetString(f.Service.Target.SecretAccessKey),
@@ -109,6 +113,7 @@ func (c *Command) execute() error {
 
 	cfg := &recordset.Config{
 		Logger:       c.logger,
+		Installation: installationName,
 		SourceClient: client.NewClients(sourceClientConfig),
 		TargetClient: client.NewClients(targetClientConfig),
 

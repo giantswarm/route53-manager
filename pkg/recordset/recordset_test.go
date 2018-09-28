@@ -97,6 +97,7 @@ func Test_deleteTargetOrphanStacks(t *testing.T) {
 
 	c := &Config{
 		Logger:       logger,
+		Installation: "test",
 		SourceClient: sourceClient,
 		TargetClient: targetClient,
 
