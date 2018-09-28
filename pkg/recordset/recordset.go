@@ -151,7 +151,7 @@ func getStackNames(cl client.StackDescribeLister, re *regexp.Regexp, installatio
 
 	for _, item := range output.StackSummaries {
 		// filter stack by name.
-		if !validateStackName(*item, re) {
+		if !validStackName(*item, re) {
 			continue
 		}
 
@@ -163,7 +163,7 @@ func getStackNames(cl client.StackDescribeLister, re *regexp.Regexp, installatio
 		if err != nil {
 			return nil, microerror.Mask(err)
 		}
-		if !validateStackInstallationTag(stacks, installation) {
+		if !validStackInstallationTag(stacks, installation) {
 			continue
 		}
 
@@ -173,11 +173,11 @@ func getStackNames(cl client.StackDescribeLister, re *regexp.Regexp, installatio
 	return result, nil
 }
 
-func validateStackName(stack cloudformation.StackSummary, re *regexp.Regexp) bool {
+func validStackName(stack cloudformation.StackSummary, re *regexp.Regexp) bool {
 	return re.Match([]byte(*stack.StackName))
 }
 
-func validateStackInstallationTag(stacks *cloudformation.DescribeStacksOutput, installation string) bool {
+func validStackInstallationTag(stacks *cloudformation.DescribeStacksOutput, installation string) bool {
 	for _, stack := range stacks.Stacks {
 		for _, tag := range stack.Tags {
 			if *tag.Key == installationTag && *tag.Value == installation {
