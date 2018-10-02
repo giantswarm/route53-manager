@@ -131,7 +131,7 @@ func (m *Manager) sourceStacks() ([]string, error) {
 }
 
 func (m *Manager) targetStacks() ([]string, error) {
-	result, err := getStackNames(m.targetClient, targetStackNameRE, m.installation)
+	result, err := getStackNames(m.targetClient, targetStackNameRE, "")
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
@@ -178,10 +178,18 @@ func getStackNames(cl client.StackDescribeLister, re *regexp.Regexp, installatio
 }
 
 func validStackName(stack cloudformation.StackSummary, re *regexp.Regexp) bool {
+	if re == nil {
+		return true
+	}
+
 	return re.Match([]byte(*stack.StackName))
 }
 
 func validStackInstallationTag(stacks *cloudformation.DescribeStacksOutput, installation string) bool {
+	if installation == "" {
+		return true
+	}
+
 	for _, stack := range stacks.Stacks {
 		for _, tag := range stack.Tags {
 			if *tag.Key == installationTag && *tag.Value == installation {
