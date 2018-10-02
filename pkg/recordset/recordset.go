@@ -193,6 +193,7 @@ func validStackInstallationTag(stacks *cloudformation.DescribeStacksOutput, inst
 }
 
 func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []string) error {
+	m.logger.Log("level", "debug", "message", "create missing target stacks")
 	for _, source := range sourceStacks {
 		found := false
 		sourceClusterName := extractClusterName(source)
@@ -228,6 +229,7 @@ func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []string)
 }
 
 func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []string) error {
+	m.logger.Log("level", "debug", "message", "update current target stacks")
 	for _, source := range sourceStacks {
 		var (
 			sourceClusterName, targetClusterName string
@@ -270,6 +272,7 @@ func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []string)
 }
 
 func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []string) error {
+	m.logger.Log("level", "debug", "message", "delete orphan target stacks")
 	for _, target := range targetStacks {
 		found := false
 		targetClusterName := extractClusterName(target)
