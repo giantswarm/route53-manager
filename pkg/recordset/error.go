@@ -14,13 +14,13 @@ func IsInvalidConfig(err error) bool {
 	return microerror.Cause(err) == invalidConfigError
 }
 
-var noUpdateError = &microerror.Error{
+var noUpdateNeededError = &microerror.Error{
 	Kind: "noUpdateError",
 }
 
-// IsNoUpdateError asserts noUpdateError.
-func IsNoUpdateError(err error) bool {
-	if microerror.Cause(err) == noUpdateError {
+// IsNoUpdateNeededError asserts noUpdateError.
+func IsNoUpdateNeededError(err error) bool {
+	if microerror.Cause(err) == noUpdateNeededError {
 		return true
 	}
 
