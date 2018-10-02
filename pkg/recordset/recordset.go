@@ -135,6 +135,7 @@ func (m *Manager) targetStacks() ([]string, error) {
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
+	m.logger.Log("level", "debug", "message", fmt.Sprintf("target stacks found: %v", result))
 	return result, nil
 }
 
