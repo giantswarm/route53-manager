@@ -65,6 +65,7 @@ func (m *Manager) getCreateStackInput(targetStackName string, data *sourceStackD
 
 	input := &cloudformation.CreateStackInput{
 		StackName:        aws.String(targetStackName),
+		Tags:             sourceStack.Tags,
 		TemplateBody:     aws.String(templateBody),
 		TimeoutInMinutes: aws.Int64(2),
 	}
@@ -80,6 +81,7 @@ func (m *Manager) getUpdateStackInput(targetStackName string, data *sourceStackD
 
 	input := &cloudformation.UpdateStackInput{
 		StackName:    aws.String(targetStackName),
+		Tags:         sourceStack.Tags,
 		TemplateBody: aws.String(templateBody),
 	}
 
