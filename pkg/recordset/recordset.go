@@ -265,7 +265,7 @@ func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudfo
 
 			_, err = m.targetClient.UpdateStack(input)
 			if IsNoUpdateNeededError(err) {
-				// fallthrough.
+				m.logger.Log("level", "debug", "message", fmt.Sprintf("target stack %q is already up to date", targetStackName))
 			} else if err != nil {
 				m.logger.Log("level", "error", "message", fmt.Sprintf("could not update target stack %q: %v", targetStackName, err))
 			} else {
