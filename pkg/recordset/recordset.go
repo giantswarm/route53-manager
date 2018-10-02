@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
@@ -271,7 +272,11 @@ func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudfo
 
 			_, err = m.targetClient.UpdateStack(input)
 			if err != nil {
-				m.logger.Log("level", "error", "message", fmt.Sprintf("could not update target stack %q: %+#v", targetStackName, err))
+				awsError := err.(awserr.Error)
+				code := awsError.Code()
+				message := awsError.Message()
+				orig := awsError.OrigErr()
+				m.logger.Log("level", "error", "message", fmt.Sprintf("could not update target stack %q: \ncode: %q\nmessage: %q\n origErr: %+#v\nerr: %+#v", targetStackName, code, message, orig, err))
 			} else {
 				m.logger.Log("level", "debug", "message", fmt.Sprintf("target stack %q updated", targetStackName))
 			}
