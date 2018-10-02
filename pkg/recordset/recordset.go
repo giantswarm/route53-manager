@@ -231,15 +231,12 @@ func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []string)
 func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []string) error {
 	m.logger.Log("level", "debug", "message", "update current target stacks")
 	for _, source := range sourceStacks {
-		var (
-			sourceClusterName, targetClusterName string
-			found                                bool
-		)
-
-		found = false
-		sourceClusterName = extractClusterName(source)
+		found := false
+		sourceClusterName := extractClusterName(source)
+		m.logger.Log("level", "debug", "message", fmt.Sprintf("source: %q", sourceClusterName))
 		for _, target := range targetStacks {
-			targetClusterName = extractClusterName(target)
+			targetClusterName := extractClusterName(target)
+			m.logger.Log("level", "debug", "message", fmt.Sprintf("target: %q", targetClusterName))
 			if sourceClusterName == targetClusterName {
 				found = true
 				break
