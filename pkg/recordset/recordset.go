@@ -131,7 +131,7 @@ func (m *Manager) sourceStacks() ([]cloudformation.Stack, error) {
 }
 
 func (m *Manager) targetStacks() ([]cloudformation.Stack, error) {
-	result, err := getStacks(m.targetClient, targetStackNameRE, "")
+	result, err := getStacks(m.targetClient, targetStackNameRE, m.installation)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
