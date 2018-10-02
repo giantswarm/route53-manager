@@ -187,10 +187,6 @@ func getStacksName(stacks []cloudformation.Stack) (names []string) {
 }
 
 func validStackName(stack cloudformation.StackSummary, re *regexp.Regexp) bool {
-	if re == nil {
-		return true
-	}
-
 	return re.Match([]byte(*stack.StackName))
 }
 
