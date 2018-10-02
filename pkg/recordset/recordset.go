@@ -168,7 +168,7 @@ func getStacks(cl client.StackDescribeLister, re *regexp.Regexp, installation st
 			return nil, microerror.Mask(err)
 		}
 		key := validStackInstallationTag(stacks, installation)
-		if key != -1 {
+		if key == -1 {
 			continue
 		}
 
