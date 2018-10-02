@@ -4,27 +4,29 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/giantswarm/micrologger"
 )
 
 func Test_deleteTargetOrphanStacks(t *testing.T) {
 	tcs := []struct {
 		description           string
-		sourceStacks          []string
-		targetStacks          []string
+		sourceStacks          []cloudformation.Stack
+		targetStacks          []cloudformation.Stack
 		expectedDeletedStacks []string
 	}{
 		{
 			description:           "empty target and source stacks, nothing should be deleted",
-			sourceStacks:          []string{},
-			targetStacks:          []string{},
+			sourceStacks:          []cloudformation.Stack{},
+			targetStacks:          []cloudformation.Stack{},
 			expectedDeletedStacks: []string{},
 		},
 		{
 			description:  "empty source stack, all should be deleted",
-			sourceStacks: []string{},
-			targetStacks: []string{
-				"cluster-bbbbb-guest-recordset",
+			sourceStacks: []cloudformation.Stack{},
+			targetStacks: []cloudformation.Stack{
+				cloudformation.Stack{StackName: aws.String("cluster-bbbbb-guest-recordset")},
 			},
 			expectedDeletedStacks: []string{
 				"cluster-bbbbb-guest-recordset",
@@ -32,29 +34,29 @@ func Test_deleteTargetOrphanStacks(t *testing.T) {
 		},
 		{
 			description: "empty target stacks, nothing should be deleted",
-			sourceStacks: []string{
-				"cluster-aaaaa-guest-main",
+			sourceStacks: []cloudformation.Stack{
+				cloudformation.Stack{StackName: aws.String("cluster-aaaaa-guest-main")},
 			},
-			targetStacks:          []string{},
+			targetStacks:          []cloudformation.Stack{},
 			expectedDeletedStacks: []string{},
 		},
 		{
 			description: "no orphaned stacks, no need to delete",
-			sourceStacks: []string{
-				"cluster-aaaaa-guest-main",
+			sourceStacks: []cloudformation.Stack{
+				cloudformation.Stack{StackName: aws.String("cluster-aaaaa-guest-main")},
 			},
-			targetStacks: []string{
-				"cluster-aaaaa-guest-recordset",
+			targetStacks: []cloudformation.Stack{
+				cloudformation.Stack{StackName: aws.String("cluster-aaaaa-guest-recordset")},
 			},
 			expectedDeletedStacks: []string{},
 		},
 		{
 			description: "one orphaned stack, needs to be deleted",
-			sourceStacks: []string{
-				"cluster-aaaaa-guest-main",
+			sourceStacks: []cloudformation.Stack{
+				cloudformation.Stack{StackName: aws.String("cluster-aaaaa-guest-main")},
 			},
-			targetStacks: []string{
-				"cluster-bbbbb-guest-recordset",
+			targetStacks: []cloudformation.Stack{
+				cloudformation.Stack{StackName: aws.String("cluster-bbbbb-guest-recordset")},
 			},
 			expectedDeletedStacks: []string{
 				"cluster-bbbbb-guest-recordset",
@@ -62,12 +64,12 @@ func Test_deleteTargetOrphanStacks(t *testing.T) {
 		},
 		{
 			description: "multiple orphaned stack, need to be deleted",
-			sourceStacks: []string{
-				"cluster-aaaaa-guest-main",
+			sourceStacks: []cloudformation.Stack{
+				cloudformation.Stack{StackName: aws.String("cluster-aaaaa-guest-main")},
 			},
-			targetStacks: []string{
-				"cluster-bbbbb-guest-recordset",
-				"cluster-ccccc-guest-main",
+			targetStacks: []cloudformation.Stack{
+				cloudformation.Stack{StackName: aws.String("cluster-bbbbb-guest-recordset")},
+				cloudformation.Stack{StackName: aws.String("cluster-ccccc-guest-main")},
 			},
 			expectedDeletedStacks: []string{
 				"cluster-bbbbb-guest-recordset",
@@ -76,13 +78,13 @@ func Test_deleteTargetOrphanStacks(t *testing.T) {
 		},
 		{
 			description: "mixed orphaned and not-orphaned stacks",
-			sourceStacks: []string{
-				"cluster-aaaaa-guest-main",
+			sourceStacks: []cloudformation.Stack{
+				cloudformation.Stack{StackName: aws.String("cluster-aaaaa-guest-main")},
 			},
-			targetStacks: []string{
-				"cluster-bbbbb-guest-recordset",
-				"cluster-aaaaa-guest-recordset",
-				"cluster-ccccc-guest-main",
+			targetStacks: []cloudformation.Stack{
+				cloudformation.Stack{StackName: aws.String("cluster-bbbbb-guest-recordset")},
+				cloudformation.Stack{StackName: aws.String("cluster-aaaaa-guest-recordset")},
+				cloudformation.Stack{StackName: aws.String("cluster-ccccc-guest-main")},
 			},
 			expectedDeletedStacks: []string{
 				"cluster-bbbbb-guest-recordset",

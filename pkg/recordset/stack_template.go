@@ -57,7 +57,7 @@ Resources:
 `
 )
 
-func (m *Manager) getCreateStackInput(targetStackName string, data *sourceStackData) (*cloudformation.CreateStackInput, error) {
+func (m *Manager) getCreateStackInput(targetStackName string, data *sourceStackData, sourceStack cloudformation.Stack) (*cloudformation.CreateStackInput, error) {
 	templateBody, err := m.getStackTemplateBody(data)
 	if err != nil {
 		return nil, microerror.Mask(err)
@@ -72,7 +72,7 @@ func (m *Manager) getCreateStackInput(targetStackName string, data *sourceStackD
 	return input, nil
 }
 
-func (m *Manager) getUpdateStackInput(targetStackName string, data *sourceStackData) (*cloudformation.UpdateStackInput, error) {
+func (m *Manager) getUpdateStackInput(targetStackName string, data *sourceStackData, sourceStack cloudformation.Stack) (*cloudformation.UpdateStackInput, error) {
 	templateBody, err := m.getStackTemplateBody(data)
 	if err != nil {
 		return nil, microerror.Mask(err)
