@@ -44,3 +44,7 @@ func (t *targetClientMock) DeleteStack(input *cloudformation.DeleteStackInput) (
 
 	return nil, nil
 }
+
+func (t *targetClientMock) UpdateStack(*cloudformation.UpdateStackInput) (*cloudformation.UpdateStackOutput, error) {
+	return nil, nil
+}

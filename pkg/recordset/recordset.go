@@ -1,9 +1,7 @@
 package recordset
 
 import (
-	"bytes"
 	"fmt"
-	"html/template"
 	"regexp"
 	"strings"
 
@@ -110,6 +108,11 @@ func (m *Manager) Sync() error {
 		return microerror.Mask(err)
 	}
 
+	err = m.updateCurrentTargetStacks(sourceStacks, targetStacks)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
 	err = m.deleteOrphanTargetStacks(sourceStacks, targetStacks)
 	if err != nil {
 		return microerror.Mask(err)
@@ -118,24 +121,25 @@ func (m *Manager) Sync() error {
 	return nil
 }
 
-func (m *Manager) sourceStacks() ([]string, error) {
-	result, err := getStackNames(m.sourceClient, sourceStackNameRE, m.installation)
+func (m *Manager) sourceStacks() ([]cloudformation.Stack, error) {
+	result, err := getStacks(m.sourceClient, sourceStackNameRE, m.installation)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
-	m.logger.Log("level", "debug", "message", fmt.Sprintf("source stacks found: %v", result))
+	m.logger.Log("level", "debug", "message", fmt.Sprintf("source stacks found: %v", getStacksName(result)))
 	return result, nil
 }
 
-func (m *Manager) targetStacks() ([]string, error) {
-	result, err := getStackNames(m.targetClient, targetStackNameRE, m.installation)
+func (m *Manager) targetStacks() ([]cloudformation.Stack, error) {
+	result, err := getStacks(m.targetClient, targetStackNameRE, m.installation)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
+	m.logger.Log("level", "debug", "message", fmt.Sprintf("target stacks found: %v", getStacksName(result)))
 	return result, nil
 }
 
-func getStackNames(cl client.StackDescribeLister, re *regexp.Regexp, installation string) ([]string, error) {
+func getStacks(cl client.StackDescribeLister, re *regexp.Regexp, installation string) ([]cloudformation.Stack, error) {
 	input := &cloudformation.ListStacksInput{
 		StackStatusFilter: []*string{
 			aws.String(cloudformation.StackStatusCreateComplete),
@@ -147,7 +151,7 @@ func getStackNames(cl client.StackDescribeLister, re *regexp.Regexp, installatio
 		return nil, microerror.Mask(err)
 	}
 
-	var result []string
+	var result []cloudformation.Stack
 
 	for _, item := range output.StackSummaries {
 		// filter stack by name.
@@ -163,38 +167,48 @@ func getStackNames(cl client.StackDescribeLister, re *regexp.Regexp, installatio
 		if err != nil {
 			return nil, microerror.Mask(err)
 		}
-		if !validStackInstallationTag(stacks, installation) {
+		key := validStackInstallationTag(stacks, installation)
+		if key == -1 {
 			continue
 		}
 
-		result = append(result, *item.StackName)
+		result = append(result, *stacks.Stacks[key])
 	}
 
 	return result, nil
+}
+
+func getStacksName(stacks []cloudformation.Stack) (names []string) {
+	for _, stack := range stacks {
+		names = append(names, *stack.StackName)
+	}
+
+	return names
 }
 
 func validStackName(stack cloudformation.StackSummary, re *regexp.Regexp) bool {
 	return re.Match([]byte(*stack.StackName))
 }
 
-func validStackInstallationTag(stacks *cloudformation.DescribeStacksOutput, installation string) bool {
-	for _, stack := range stacks.Stacks {
+func validStackInstallationTag(stacks *cloudformation.DescribeStacksOutput, installation string) int {
+	for key, stack := range stacks.Stacks {
 		for _, tag := range stack.Tags {
 			if *tag.Key == installationTag && *tag.Value == installation {
-				return true
+				return key
 			}
 		}
 	}
 
-	return false
+	return -1
 }
 
-func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []string) error {
+func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []cloudformation.Stack) error {
+	m.logger.Log("level", "debug", "message", "create missing target stacks")
 	for _, source := range sourceStacks {
 		found := false
-		sourceClusterName := extractClusterName(source)
+		sourceClusterName := extractClusterName(*source.StackName)
 		for _, target := range targetStacks {
-			targetClusterName := extractClusterName(target)
+			targetClusterName := extractClusterName(*target.StackName)
 			if sourceClusterName == targetClusterName {
 				found = true
 				break
@@ -207,7 +221,13 @@ func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []string)
 			if err != nil {
 				m.logger.Log("level", "error", "message", fmt.Sprintf("could not get data about %q: %v", sourceClusterName, err))
 			}
-			err = m.createTargetStack(targetStackName, data)
+
+			input, err := m.getCreateStackInput(targetStackName, data, source)
+			if err != nil {
+				m.logger.Log("level", "error", "message", fmt.Sprintf("could not create target stack input %q: %v", targetStackName, err))
+			}
+
+			_, err = m.targetClient.CreateStack(input)
 			if err != nil {
 				m.logger.Log("level", "error", "message", fmt.Sprintf("could not create target stack %q: %v", targetStackName, err))
 			} else {
@@ -218,49 +238,65 @@ func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []string)
 	return nil
 }
 
-func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []string) error {
+func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudformation.Stack) error {
+	m.logger.Log("level", "debug", "message", "update current target stacks")
+	for _, source := range sourceStacks {
+		found := false
+		sourceClusterName := extractClusterName(*source.StackName)
+		for _, target := range targetStacks {
+			targetClusterName := extractClusterName(*target.StackName)
+			if sourceClusterName == targetClusterName {
+				found = true
+				break
+			}
+		}
+		if found {
+			targetStackName := targetStackName(sourceClusterName)
+			data, err := m.getSourceStackData(sourceClusterName)
+			m.logger.Log("level", "debug", "message", fmt.Sprintf("data for %q: %#v", sourceClusterName, data))
+			if err != nil {
+				m.logger.Log("level", "error", "message", fmt.Sprintf("could not get data about %q: %v", sourceClusterName, err))
+			}
+
+			input, err := m.getUpdateStackInput(targetStackName, data, source)
+			if err != nil {
+				m.logger.Log("level", "error", "message", fmt.Sprintf("could not create target stack input %q: %v", targetStackName, err))
+			}
+
+			_, err = m.targetClient.UpdateStack(input)
+			if IsNoUpdateNeededError(err) {
+				// fallthrough.
+			} else if err != nil {
+				m.logger.Log("level", "error", "message", fmt.Sprintf("could not update target stack %q: %v", targetStackName, err))
+			} else {
+				m.logger.Log("level", "debug", "message", fmt.Sprintf("target stack %q updated", targetStackName))
+			}
+		}
+	}
+
+	return nil
+}
+
+func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []cloudformation.Stack) error {
+	m.logger.Log("level", "debug", "message", "delete orphan target stacks")
 	for _, target := range targetStacks {
 		found := false
-		targetClusterName := extractClusterName(target)
+		targetClusterName := extractClusterName(*target.StackName)
 		for _, source := range sourceStacks {
-			sourceClusterName := extractClusterName(source)
+			sourceClusterName := extractClusterName(*source.StackName)
 			if sourceClusterName == targetClusterName {
 				found = true
 				break
 			}
 		}
 		if !found {
-			err := m.deleteTargetStack(target)
+			err := m.deleteTargetStack(*target.StackName)
 			if err != nil {
-				m.logger.Log("level", "debug", "message", fmt.Sprintf("failed to delete %q stack", target), "stack", fmt.Sprintf("%v", err))
+				m.logger.Log("level", "debug", "message", fmt.Sprintf("failed to delete %q stack", *target.StackName), "stack", fmt.Sprintf("%v", err))
 			} else {
-				m.logger.Log("level", "debug", "message", fmt.Sprintf("%q stack deleted", target))
+				m.logger.Log("level", "debug", "message", fmt.Sprintf("%q stack deleted", *target.StackName))
 			}
 		}
-	}
-	return nil
-}
-
-func (m *Manager) createTargetStack(targetStackName string, data *sourceStackData) error {
-	tmpl, err := template.New("recordsets").Parse(targetStackTemplate)
-	if err != nil {
-		return microerror.Mask(err)
-	}
-
-	var templateBody bytes.Buffer
-	err = tmpl.Execute(&templateBody, data)
-	if err != nil {
-		return microerror.Mask(err)
-	}
-
-	input := &cloudformation.CreateStackInput{
-		StackName:        aws.String(targetStackName),
-		TemplateBody:     aws.String(templateBody.String()),
-		TimeoutInMinutes: aws.Int64(2),
-	}
-	_, err = m.targetClient.CreateStack(input)
-	if err != nil {
-		return microerror.Mask(err)
 	}
 	return nil
 }

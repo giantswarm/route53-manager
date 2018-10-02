@@ -1,7 +1,11 @@
 package recordset
 
 import (
+	"bytes"
+	"html/template"
+
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/giantswarm/microerror"
@@ -52,6 +56,52 @@ Resources:
       - {{ .EtcdInstanceDNS }}
 `
 )
+
+func (m *Manager) getCreateStackInput(targetStackName string, data *sourceStackData, sourceStack cloudformation.Stack) (*cloudformation.CreateStackInput, error) {
+	templateBody, err := m.getStackTemplateBody(data)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+
+	input := &cloudformation.CreateStackInput{
+		StackName:        aws.String(targetStackName),
+		Tags:             sourceStack.Tags,
+		TemplateBody:     aws.String(templateBody),
+		TimeoutInMinutes: aws.Int64(2),
+	}
+
+	return input, nil
+}
+
+func (m *Manager) getUpdateStackInput(targetStackName string, data *sourceStackData, sourceStack cloudformation.Stack) (*cloudformation.UpdateStackInput, error) {
+	templateBody, err := m.getStackTemplateBody(data)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+
+	input := &cloudformation.UpdateStackInput{
+		StackName:    aws.String(targetStackName),
+		Tags:         sourceStack.Tags,
+		TemplateBody: aws.String(templateBody),
+	}
+
+	return input, nil
+}
+
+func (m *Manager) getStackTemplateBody(data *sourceStackData) (string, error) {
+	tmpl, err := template.New("recordsets").Parse(targetStackTemplate)
+	if err != nil {
+		return "", microerror.Mask(err)
+	}
+
+	var templateBody bytes.Buffer
+	err = tmpl.Execute(&templateBody, data)
+	if err != nil {
+		return "", microerror.Mask(err)
+	}
+
+	return templateBody.String(), nil
+}
 
 func (m *Manager) getSourceStackData(clusterName string) (*sourceStackData, error) {
 	ingressELBName := clusterName + "-ingress"
