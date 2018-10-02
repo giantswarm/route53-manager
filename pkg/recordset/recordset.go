@@ -247,10 +247,8 @@ func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudfo
 	for _, source := range sourceStacks {
 		found := false
 		sourceClusterName := extractClusterName(*source.StackName)
-		m.logger.Log("level", "debug", "message", fmt.Sprintf("source: %q", sourceClusterName))
 		for _, target := range targetStacks {
 			targetClusterName := extractClusterName(*target.StackName)
-			m.logger.Log("level", "debug", "message", fmt.Sprintf("target: %q", targetClusterName))
 			if sourceClusterName == targetClusterName {
 				found = true
 				break
