@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: route53-manager-configmap
+  namespace: giantswarm
+data:
+  config.yaml: |
+    service:
+      installation:
+        name: '{{ .Values.Installation.V1.Name }}'

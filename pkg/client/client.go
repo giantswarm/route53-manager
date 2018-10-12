@@ -18,20 +18,22 @@ type Config struct {
 	Region          string
 }
 
-type StackLister interface {
+type StackDescribeLister interface {
+	DescribeStacks(*cloudformation.DescribeStacksInput) (*cloudformation.DescribeStacksOutput, error)
 	ListStacks(*cloudformation.ListStacksInput) (*cloudformation.ListStacksOutput, error)
 }
 
 type SourceInterface interface {
-	StackLister
+	StackDescribeLister
 	DescribeInstances(*ec2.DescribeInstancesInput) (*ec2.DescribeInstancesOutput, error)
 	DescribeLoadBalancers(*elb.DescribeLoadBalancersInput) (*elb.DescribeLoadBalancersOutput, error)
 }
 
 type TargetInterface interface {
-	StackLister
+	StackDescribeLister
 	CreateStack(*cloudformation.CreateStackInput) (*cloudformation.CreateStackOutput, error)
 	DeleteStack(*cloudformation.DeleteStackInput) (*cloudformation.DeleteStackOutput, error)
+	UpdateStack(*cloudformation.UpdateStackInput) (*cloudformation.UpdateStackOutput, error)
 }
 
 type Clients struct {

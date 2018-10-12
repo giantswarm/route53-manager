@@ -8,6 +8,10 @@ import (
 
 type sourceClientMock struct{}
 
+func (s *sourceClientMock) DescribeStacks(*cloudformation.DescribeStacksInput) (*cloudformation.DescribeStacksOutput, error) {
+	return nil, nil
+}
+
 func (s *sourceClientMock) ListStacks(*cloudformation.ListStacksInput) (*cloudformation.ListStacksOutput, error) {
 	return nil, nil
 }
@@ -23,6 +27,10 @@ type targetClientMock struct {
 	deletedStacks []string
 }
 
+func (s *targetClientMock) DescribeStacks(*cloudformation.DescribeStacksInput) (*cloudformation.DescribeStacksOutput, error) {
+	return nil, nil
+}
+
 func (t *targetClientMock) ListStacks(*cloudformation.ListStacksInput) (*cloudformation.ListStacksOutput, error) {
 	return nil, nil
 }
@@ -34,5 +42,9 @@ func (t *targetClientMock) CreateStack(*cloudformation.CreateStackInput) (*cloud
 func (t *targetClientMock) DeleteStack(input *cloudformation.DeleteStackInput) (*cloudformation.DeleteStackOutput, error) {
 	t.deletedStacks = append(t.deletedStacks, *input.StackName)
 
+	return nil, nil
+}
+
+func (t *targetClientMock) UpdateStack(*cloudformation.UpdateStackInput) (*cloudformation.UpdateStackOutput, error) {
 	return nil, nil
 }
