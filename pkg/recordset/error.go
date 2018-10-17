@@ -30,6 +30,15 @@ func IsNoUpdateNeededError(err error) bool {
 		awsErr.Message() == "No updates are to be performed."
 }
 
+var mockClientError = &microerror.Error{
+	Kind: "mockClientError",
+}
+
+// IsMockClientError asserts mockClientError.
+func IsMockClientError(err error) bool {
+	return microerror.Cause(err) == mockClientError
+}
+
 var tooFewResultsError = &microerror.Error{
 	Kind: "tooFewResultsError",
 }
