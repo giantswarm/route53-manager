@@ -20,6 +20,28 @@ const (
 	installationTag = "giantswarm.io/installation"
 )
 
+var (
+	stackStatusCompleteNotDelete = []string{
+		cloudformation.StackStatusCreateComplete,
+		cloudformation.StackStatusRollbackComplete,
+		cloudformation.StackStatusUpdateComplete,
+		cloudformation.StackStatusUpdateRollbackComplete,
+	}
+	stackStatusCompleteNotDeleteAndFail = []string{
+		cloudformation.StackStatusCreateComplete,
+		cloudformation.StackStatusRollbackComplete,
+		cloudformation.StackStatusUpdateComplete,
+		cloudformation.StackStatusUpdateRollbackComplete,
+		cloudformation.StackStatusCreateFailed,
+		cloudformation.StackStatusRollbackFailed,
+		cloudformation.StackStatusDeleteFailed,
+		cloudformation.StackStatusUpdateRollbackFailed,
+	}
+	stackStatusDeleted = []string{
+		cloudformation.StackStatusDeleteComplete,
+	}
+)
+
 type Config struct {
 	Logger       micrologger.Logger
 	Installation string
