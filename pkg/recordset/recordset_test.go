@@ -146,10 +146,9 @@ func TestCreateMissingStacks_Cases(t *testing.T) {
 	}
 }
 
-// TestCreateMissingStacks_Statuses tests Manager.createMissingTargetStacks
-// s: filterIn(*complete not delete)
-// s: complete not delete
-// t: nil
+// TestCreateMissingStacks_Statuses tests Manager.createMissingTargetStacks.
+//
+// Creation is only allowed when source stack has status *_COMPLETE except DELETE_COMPLETE.
 func TestCreateMissingStacks_Statuses(t *testing.T) {
 	var (
 		installation = "installation"
@@ -448,9 +447,8 @@ func TestUpdateCurrentTargetStacks_Cases(t *testing.T) {
 }
 
 // TestUpdateCurrentTargetStacks_SourceStatuses tests Manager.updateCurrentTargetStacks
-// filterIn(*complete not delete)
-// s: complete not delete
-// t: *complete not delete or *failed
+//
+// Update is only allowed when source stack has status *_COMPLETE except DELETE_COMPLETE.
 func TestUpdateCurrentTargetStacks_SourceStatuses(t *testing.T) {
 	var (
 		installation = "installation"
@@ -610,11 +608,9 @@ func TestUpdateCurrentTargetStacks_SourceStatuses(t *testing.T) {
 	}
 }
 
-
 // TestUpdateCurrentTargetStacks_TargetStatuses tests Manager.updateCurrentTargetStacks
-// filterIn(*complete not delete)
-// s: complete not delete
-// t: *complete not delete or *failed
+//
+// Update is only allowed when target stack has status *_COMPLETE except DELETE_COMPLETE or *_FAILED.
 func TestUpdateCurrentTargetStacks_TargetStatuses(t *testing.T) {
 	var (
 		installation = "installation"
@@ -892,9 +888,8 @@ func TestDeleteOrphanTargetStacks_Cases(t *testing.T) {
 }
 
 // TestDeleteOrphanTargetStacks_Statuses tests Manager.deleteOrphanTargetStacks
-// s: filterOut(delete_complete)
-// s: nil or delete_complete
-// t: not nil and not delete_complete
+//
+// Deletion is only allowed when source stack has status DELETE_COMPLETE.
 func TestDeleteOrphanTargetStacks_Statuses(t *testing.T) {
 	var (
 		installation = "installation"
