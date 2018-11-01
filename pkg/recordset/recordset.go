@@ -264,9 +264,19 @@ func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []cloudfo
 	m.logger.Log("level", "debug", "message", "create missing target stacks")
 	for _, source := range filterStacksByStatus(sourceStacks, stackStatusCompleteNotDelete, false) {
 		found := false
-		sourceClusterName := extractClusterName(*source.StackName)
+		sourceClusterName, err := extractClusterName(*source.StackName)
+		if err != nil {
+			m.logger.Log("level", "error", "message", fmt.Sprintf("could not get source stack name %q: %v", *source.StackName, err))
+			continue
+		}
+
 		for _, target := range filterStacksByStatus(targetStacks, stackStatusDeleted, true) {
-			targetClusterName := extractClusterName(*target.StackName)
+			targetClusterName, err := extractClusterName(*target.StackName)
+			if err != nil {
+				m.logger.Log("level", "error", "message", fmt.Sprintf("could not get target stack name %q: %v", *target.StackName, err))
+				continue
+			}
+
 			if sourceClusterName == targetClusterName {
 				found = true
 				break
@@ -303,9 +313,19 @@ func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudfo
 	m.logger.Log("level", "debug", "message", "update current target stacks")
 	for _, source := range filterStacksByStatus(sourceStacks, stackStatusCompleteNotDelete, false) {
 		found := false
-		sourceClusterName := extractClusterName(*source.StackName)
+		sourceClusterName, err := extractClusterName(*source.StackName)
+		if err != nil {
+			m.logger.Log("level", "error", "message", fmt.Sprintf("could not get source stack name %q: %v", *source.StackName, err))
+			continue
+		}
+
 		for _, target := range filterStacksByStatus(targetStacks, stackStatusCompleteNotDeleteAndFail, false) {
-			targetClusterName := extractClusterName(*target.StackName)
+			targetClusterName, err := extractClusterName(*target.StackName)
+			if err != nil {
+				m.logger.Log("level", "error", "message", fmt.Sprintf("could not get target stack name %q: %v", *target.StackName, err))
+				continue
+			}
+
 			if sourceClusterName == targetClusterName {
 				found = true
 				break
@@ -342,9 +362,19 @@ func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []cloudfor
 	m.logger.Log("level", "debug", "message", "delete orphan target stacks")
 	for _, target := range filterStacksByStatus(targetStacks, stackStatusDeleted, true) {
 		found := false
-		targetClusterName := extractClusterName(*target.StackName)
+		targetClusterName, err := extractClusterName(*target.StackName)
+		if err != nil {
+			m.logger.Log("level", "error", "message", fmt.Sprintf("could not get target stack name %q: %v", *target.StackName, err))
+			continue
+		}
+
 		for _, source := range filterStacksByStatus(sourceStacks, stackStatusDeleted, true) {
-			sourceClusterName := extractClusterName(*source.StackName)
+			sourceClusterName, err := extractClusterName(*source.StackName)
+			if err != nil {
+				m.logger.Log("level", "error", "message", fmt.Sprintf("could not get source stack name %q: %v", *source.StackName, err))
+				continue
+			}
+
 			if sourceClusterName == targetClusterName {
 				found = true
 				break
@@ -379,11 +409,11 @@ func targetStackName(clusterName string) string {
 	return fmt.Sprintf(targetStackNameFmt, clusterName)
 }
 
-func extractClusterName(sourceStackName string) string {
+func extractClusterName(sourceStackName string) (string, error) {
 	parts := strings.Split(sourceStackName, "-")
 	if len(parts) >= 2 {
-		return parts[1]
+		return parts[1], nil
 	}
 
-	return ""
+	return "", invalidClusterNameError
 }
