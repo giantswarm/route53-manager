@@ -222,6 +222,7 @@ func filterStacksByStatus(input []cloudformation.Stack, statuses []string, exclu
 			for _, status := range statuses {
 				if *stack.StackStatus == status {
 					match = true
+					break
 				}
 			}
 		}
