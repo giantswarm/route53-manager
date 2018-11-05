@@ -372,7 +372,7 @@ func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []cloudfor
 		for _, source := range filterStacksByStatus(sourceStacks, stackStatusDeleted, true) {
 			sourceClusterName, err := extractClusterName(*source.StackName)
 			if err != nil {
-				m.logger.Log("level", "error", "message", fmt.Sprintf("could not get source stack name %q: %v", *source.StackName, err))
+				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get source stack name %#q", *target.StackName), "stack", fmt.Sprintf(%#v, err))
 				continue
 			}
 
