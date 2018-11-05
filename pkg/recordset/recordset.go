@@ -418,5 +418,5 @@ func extractClusterName(sourceStackName string) (string, error) {
 		return parts[1], nil
 	}
 
-	return "", invalidClusterNameError
+	return "", microerror.Maskf(invalidClusterNameError, "cluster name %#q")
 }
