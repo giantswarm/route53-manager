@@ -323,7 +323,7 @@ func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudfo
 		for _, target := range filterStacksByStatus(targetStacks, stackStatusCompleteNotDeleteAndFail, false) {
 			targetClusterName, err := extractClusterName(*target.StackName)
 			if err != nil {
-				m.logger.Log("level", "error", "message", fmt.Sprintf("could not get target stack name %q: %v", *target.StackName, err))
+				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get target stack name %#q", *target.StackName), "stack", fmt.Sprintf(%#v, err))
 				continue
 			}
 
