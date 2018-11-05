@@ -304,7 +304,7 @@ func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []cloudfo
 				continue
 			}
 
-			m.logger.Log("level", "debug", "message", fmt.Sprintf("target stack %q created", targetStackName))
+			m.logger.Log("level", "debug", "message", fmt.Sprintf("created target stack %#q", targetStackName))
 		}
 	}
 	return nil
