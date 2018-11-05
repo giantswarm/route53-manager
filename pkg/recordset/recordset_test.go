@@ -1050,3 +1050,249 @@ func TestDeleteOrphanTargetStacks_Statuses(t *testing.T) {
 		})
 	}
 }
+
+func TestFilterStacksByStatus(t *testing.T) {
+	tcs := []struct {
+		description string
+		input       []cloudformation.Stack
+		output      []cloudformation.Stack
+		statuses    []string
+	}{
+		{
+			"nil inputs",
+			nil,
+			[]cloudformation.Stack{},
+			nil,
+		},
+		{
+			"zero value inputs",
+			[]cloudformation.Stack{},
+			[]cloudformation.Stack{},
+			[]string{},
+		},
+		{
+			"zero filter gives zero output",
+			[]cloudformation.Stack{
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusUpdateComplete),
+				},
+			},
+			[]cloudformation.Stack{},
+			[]string{},
+		},
+		{
+			"non matching filter gives zero output",
+			[]cloudformation.Stack{
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusUpdateComplete),
+				},
+			},
+			[]cloudformation.Stack{},
+			[]string{
+				cloudformation.StackStatusDeleteComplete,
+			},
+		},
+		{
+			"one matching filter",
+			[]cloudformation.Stack{
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusUpdateComplete),
+				},
+			},
+			[]cloudformation.Stack{
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+			},
+			[]string{
+				cloudformation.StackStatusCreateComplete,
+			},
+		},
+		{
+			"two matching filters",
+			[]cloudformation.Stack{
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusUpdateComplete),
+				},
+			},
+			[]cloudformation.Stack{
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusUpdateComplete),
+				},
+			},
+			[]string{
+				cloudformation.StackStatusCreateComplete,
+				cloudformation.StackStatusUpdateComplete,
+			},
+		},
+	}
+
+	for _, tc := range tcs {
+		t.Run(tc.description, func(t *testing.T) {
+			output := filterStacksByStatus(tc.input, tc.statuses)
+			if !reflect.DeepEqual(tc.output, output) {
+				t.Errorf("expected %#v, got %#v", tc.output, output)
+			}
+		})
+	}
+}
+
+func TestExcludeStacksByStatus(t *testing.T) {
+	tcs := []struct {
+		description string
+		input       []cloudformation.Stack
+		output      []cloudformation.Stack
+		statuses    []string
+	}{
+		{
+			"nil inputs",
+			nil,
+			[]cloudformation.Stack{},
+			nil,
+		},
+		{
+			"zero value inputs",
+			[]cloudformation.Stack{},
+			[]cloudformation.Stack{},
+			[]string{},
+		},
+		{
+			"no filter gives input as output",
+			[]cloudformation.Stack{
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusUpdateComplete),
+				},
+			},
+			[]cloudformation.Stack{
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusUpdateComplete),
+				},
+			},
+			[]string{},
+		},
+		{
+			"non matching filter gives input as output",
+			[]cloudformation.Stack{
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusUpdateComplete),
+				},
+			},
+			[]cloudformation.Stack{
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusUpdateComplete),
+				},
+			},
+			[]string{
+				cloudformation.StackStatusDeleteComplete,
+			},
+		},
+
+		{
+			"one matching filter",
+			[]cloudformation.Stack{
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusUpdateComplete),
+				},
+			},
+			[]cloudformation.Stack{
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusUpdateComplete),
+				},
+			},
+			[]string{
+				cloudformation.StackStatusCreateComplete,
+			},
+		},
+		{
+			"two matching filters",
+			[]cloudformation.Stack{
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+				cloudformation.Stack{
+					StackStatus: aws.String(cloudformation.StackStatusUpdateComplete),
+				},
+			},
+			[]cloudformation.Stack{},
+			[]string{
+				cloudformation.StackStatusCreateComplete,
+				cloudformation.StackStatusUpdateComplete,
+			},
+		},
+	}
+
+	for _, tc := range tcs {
+		t.Run(tc.description, func(t *testing.T) {
+			output := excludeStacksByStatus(tc.input, tc.statuses)
+			if !reflect.DeepEqual(tc.output, output) {
+				t.Errorf("expected %#v, got %#v", tc.output, output)
+			}
+		})
+	}
+}
