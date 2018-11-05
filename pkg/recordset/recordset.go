@@ -316,7 +316,7 @@ func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudfo
 		found := false
 		sourceClusterName, err := extractClusterName(*source.StackName)
 		if err != nil {
-			m.logger.Log("level", "error", "message", fmt.Sprintf("could not get source stack name %q: %v", *source.StackName, err))
+			m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get source stack name %#q", *source.StackName), "stack", fmt.Sprintf(%#v, err))
 			continue
 		}
 
