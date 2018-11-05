@@ -29,12 +29,12 @@ var (
 	}
 	stackStatusCompleteNotDeleteAndFail = []string{
 		cloudformation.StackStatusCreateComplete,
+		cloudformation.StackStatusCreateFailed,
+		cloudformation.StackStatusDeleteFailed,
 		cloudformation.StackStatusRollbackComplete,
+		cloudformation.StackStatusRollbackFailed,
 		cloudformation.StackStatusUpdateComplete,
 		cloudformation.StackStatusUpdateRollbackComplete,
-		cloudformation.StackStatusCreateFailed,
-		cloudformation.StackStatusRollbackFailed,
-		cloudformation.StackStatusDeleteFailed,
 		cloudformation.StackStatusUpdateRollbackFailed,
 	}
 	stackStatusDeleted = []string{
