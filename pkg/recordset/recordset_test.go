@@ -1170,7 +1170,7 @@ func TestFilterStacksByStatus(t *testing.T) {
 	}
 }
 
-func TestExcludeStacksByStatus(t *testing.T) {
+func TestDropStacksByStatus(t *testing.T) {
 	tcs := []struct {
 		description string
 		input       []cloudformation.Stack
@@ -1289,7 +1289,7 @@ func TestExcludeStacksByStatus(t *testing.T) {
 
 	for _, tc := range tcs {
 		t.Run(tc.description, func(t *testing.T) {
-			output := excludeStacksByStatus(tc.input, tc.statuses)
+			output := dropStacksByStatus(tc.input, tc.statuses)
 			if !reflect.DeepEqual(tc.output, output) {
 				t.Errorf("expected %#v, got %#v", tc.output, output)
 			}

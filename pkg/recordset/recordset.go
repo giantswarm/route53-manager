@@ -226,9 +226,9 @@ func filterStacksByStatus(input []cloudformation.Stack, statuses []string) []clo
 	return output
 }
 
-// excludeStacksByStatus excludes input by status.
+// dropStacksByStatus excludes input by status.
 // It does the opposite of filterStacksByStatus.
-func excludeStacksByStatus(input []cloudformation.Stack, statuses []string) []cloudformation.Stack {
+func dropStacksByStatus(input []cloudformation.Stack, statuses []string) []cloudformation.Stack {
 	output := []cloudformation.Stack{}
 
 	for _, stack := range input {
@@ -287,7 +287,7 @@ func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []cloudfo
 			continue
 		}
 
-		for _, target := range excludeStacksByStatus(targetStacks, stackStatusDeleted) {
+		for _, target := range dropStacksByStatus(targetStacks, stackStatusDeleted) {
 			targetClusterName, err := extractClusterName(*target.StackName)
 			if err != nil {
 				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get target stack name %#q", *target.StackName), "stack", fmt.Sprintf("%#v", err))
@@ -378,7 +378,7 @@ func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudfo
 
 func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []cloudformation.Stack) error {
 	m.logger.Log("level", "debug", "message", "delete orphan target stacks")
-	for _, target := range excludeStacksByStatus(targetStacks, stackStatusDeleted) {
+	for _, target := range dropStacksByStatus(targetStacks, stackStatusDeleted) {
 		found := false
 		targetClusterName, err := extractClusterName(*target.StackName)
 		if err != nil {
@@ -386,7 +386,7 @@ func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []cloudfor
 			continue
 		}
 
-		for _, source := range excludeStacksByStatus(sourceStacks, stackStatusDeleted) {
+		for _, source := range dropStacksByStatus(sourceStacks, stackStatusDeleted) {
 			sourceClusterName, err := extractClusterName(*source.StackName)
 			if err != nil {
 				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get source stack name %#q", *source.StackName), "stack", fmt.Sprintf("%#v", err))
