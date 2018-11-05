@@ -213,6 +213,7 @@ func getStacks(cl client.StackDescribeLister, re *regexp.Regexp, installation st
 	return result, nil
 }
 
+// filterStacksByStatus filters input by status.
 func filterStacksByStatus(input []cloudformation.Stack, statuses []string) []cloudformation.Stack {
 	output := []cloudformation.Stack{}
 
@@ -225,6 +226,8 @@ func filterStacksByStatus(input []cloudformation.Stack, statuses []string) []clo
 	return output
 }
 
+// excludeStacksByStatus excludes input by status.
+// It does the opposite of filterStacksByStatus.
 func excludeStacksByStatus(input []cloudformation.Stack, statuses []string) []cloudformation.Stack {
 	output := []cloudformation.Stack{}
 
@@ -237,6 +240,7 @@ func excludeStacksByStatus(input []cloudformation.Stack, statuses []string) []cl
 	return output
 }
 
+// stackHasStatus checks if stack.StackStatus matches any of statues status.
 func stackHasStatus(stack cloudformation.Stack, statuses []string) bool {
 	if stack.StackStatus != nil {
 		for _, status := range statuses {
