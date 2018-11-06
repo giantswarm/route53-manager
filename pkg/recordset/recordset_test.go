@@ -172,14 +172,14 @@ func TestCreateMissingStacks_Statuses(t *testing.T) {
 			true,
 		},
 		{
-			"create stack when source status is rollback complete",
+			"do not create stack when source status is rollback complete",
 			cloudformation.StackStatusRollbackComplete,
-			true,
+			false,
 		},
 		{
-			"create stack when source status is update rollback complete",
+			"do not create stack when source status is update rollback complete",
 			cloudformation.StackStatusUpdateRollbackComplete,
-			true,
+			false,
 		},
 		{
 			"do not create stack when source status is create in progress",
@@ -472,14 +472,14 @@ func TestUpdateCurrentTargetStacks_SourceStatuses(t *testing.T) {
 			true,
 		},
 		{
-			"update stack when source status is rollback complete",
+			"do not update stack when source status is rollback complete",
 			cloudformation.StackStatusRollbackComplete,
-			true,
+			false,
 		},
 		{
-			"update stack when source status is update rollback complete",
+			"do not update stack when source status is update rollback complete",
 			cloudformation.StackStatusUpdateRollbackComplete,
-			true,
+			false,
 		},
 		{
 			"do not update stack when source status is create in progress",
