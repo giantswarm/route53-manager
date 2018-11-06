@@ -19,7 +19,7 @@ func TestCreateMissingStacks_Cases(t *testing.T) {
 	)
 
 	tcs := []struct {
-		description           string
+		name                  string
 		sourceStacks          []cloudformation.Stack
 		targetStacks          []cloudformation.Stack
 		expectedCreatedStacks []string
@@ -109,7 +109,7 @@ func TestCreateMissingStacks_Cases(t *testing.T) {
 		},
 	}
 	for _, tc := range tcs {
-		t.Run(tc.description, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			logger, err := micrologger.New(micrologger.Config{IOWriter: ioutil.Discard})
 			if err != nil {
 				t.Fatalf("micrologger.New: %v", err)
@@ -157,7 +157,7 @@ func TestCreateMissingStacks_Statuses(t *testing.T) {
 	)
 
 	tcs := []struct {
-		description  string
+		name         string
 		status       string
 		expectCreate bool
 	}{
@@ -248,7 +248,7 @@ func TestCreateMissingStacks_Statuses(t *testing.T) {
 		},
 	}
 	for _, tc := range tcs {
-		t.Run(tc.description, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			logger, err := micrologger.New(micrologger.Config{IOWriter: ioutil.Discard})
 			if err != nil {
 				t.Fatalf("micrologger.New: %v", err)
@@ -305,7 +305,7 @@ func TestUpdateCurrentTargetStacks_Cases(t *testing.T) {
 	)
 
 	tcs := []struct {
-		description           string
+		name                  string
 		sourceStacks          []cloudformation.Stack
 		targetStacks          []cloudformation.Stack
 		expectedUpdatedStacks []string
@@ -409,7 +409,7 @@ func TestUpdateCurrentTargetStacks_Cases(t *testing.T) {
 		},
 	}
 	for _, tc := range tcs {
-		t.Run(tc.description, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			logger, err := micrologger.New(micrologger.Config{IOWriter: ioutil.Discard})
 			if err != nil {
 				t.Fatalf("micrologger.New: %v", err)
@@ -457,7 +457,7 @@ func TestUpdateCurrentTargetStacks_SourceStatuses(t *testing.T) {
 	)
 
 	tcs := []struct {
-		description  string
+		name         string
 		status       string
 		expectUpdate bool
 	}{
@@ -548,7 +548,7 @@ func TestUpdateCurrentTargetStacks_SourceStatuses(t *testing.T) {
 		},
 	}
 	for _, tc := range tcs {
-		t.Run(tc.description, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			logger, err := micrologger.New(micrologger.Config{IOWriter: ioutil.Discard})
 			if err != nil {
 				t.Fatalf("micrologger.New: %v", err)
@@ -619,7 +619,7 @@ func TestUpdateCurrentTargetStacks_TargetStatuses(t *testing.T) {
 	)
 
 	tcs := []struct {
-		description  string
+		name         string
 		status       string
 		expectUpdate bool
 	}{
@@ -710,7 +710,7 @@ func TestUpdateCurrentTargetStacks_TargetStatuses(t *testing.T) {
 		},
 	}
 	for _, tc := range tcs {
-		t.Run(tc.description, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			logger, err := micrologger.New(micrologger.Config{IOWriter: ioutil.Discard})
 			if err != nil {
 				t.Fatalf("micrologger.New: %v", err)
@@ -772,19 +772,19 @@ func TestUpdateCurrentTargetStacks_TargetStatuses(t *testing.T) {
 
 func TestDeleteOrphanTargetStacks_Cases(t *testing.T) {
 	tcs := []struct {
-		description           string
+		name                  string
 		sourceStacks          []cloudformation.Stack
 		targetStacks          []cloudformation.Stack
 		expectedDeletedStacks []string
 	}{
 		{
-			description:           "empty target and source stacks, nothing should be deleted",
+			name:                  "empty target and source stacks, nothing should be deleted",
 			sourceStacks:          []cloudformation.Stack{},
 			targetStacks:          []cloudformation.Stack{},
 			expectedDeletedStacks: []string{},
 		},
 		{
-			description:  "empty source stack, all should be deleted",
+			name:         "empty source stack, all should be deleted",
 			sourceStacks: []cloudformation.Stack{},
 			targetStacks: []cloudformation.Stack{
 				cloudformation.Stack{StackName: aws.String("cluster-bbbbb-guest-recordset")},
@@ -794,7 +794,7 @@ func TestDeleteOrphanTargetStacks_Cases(t *testing.T) {
 			},
 		},
 		{
-			description: "empty target stacks, nothing should be deleted",
+			name: "empty target stacks, nothing should be deleted",
 			sourceStacks: []cloudformation.Stack{
 				cloudformation.Stack{StackName: aws.String("cluster-aaaaa-guest-main")},
 			},
@@ -802,7 +802,7 @@ func TestDeleteOrphanTargetStacks_Cases(t *testing.T) {
 			expectedDeletedStacks: []string{},
 		},
 		{
-			description: "no orphaned stacks, no need to delete",
+			name: "no orphaned stacks, no need to delete",
 			sourceStacks: []cloudformation.Stack{
 				cloudformation.Stack{StackName: aws.String("cluster-aaaaa-guest-main")},
 			},
@@ -812,7 +812,7 @@ func TestDeleteOrphanTargetStacks_Cases(t *testing.T) {
 			expectedDeletedStacks: []string{},
 		},
 		{
-			description: "one orphaned stack, needs to be deleted",
+			name: "one orphaned stack, needs to be deleted",
 			sourceStacks: []cloudformation.Stack{
 				cloudformation.Stack{StackName: aws.String("cluster-aaaaa-guest-main")},
 			},
@@ -824,7 +824,7 @@ func TestDeleteOrphanTargetStacks_Cases(t *testing.T) {
 			},
 		},
 		{
-			description: "multiple orphaned stack, need to be deleted",
+			name: "multiple orphaned stack, need to be deleted",
 			sourceStacks: []cloudformation.Stack{
 				cloudformation.Stack{StackName: aws.String("cluster-aaaaa-guest-main")},
 			},
@@ -838,7 +838,7 @@ func TestDeleteOrphanTargetStacks_Cases(t *testing.T) {
 			},
 		},
 		{
-			description: "mixed orphaned and not-orphaned stacks",
+			name: "mixed orphaned and not-orphaned stacks",
 			sourceStacks: []cloudformation.Stack{
 				cloudformation.Stack{StackName: aws.String("cluster-aaaaa-guest-main")},
 			},
@@ -874,7 +874,7 @@ func TestDeleteOrphanTargetStacks_Cases(t *testing.T) {
 	}
 	for _, tc := range tcs {
 		targetClient.deletedStacks = []string{}
-		t.Run(tc.description, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			err := m.deleteOrphanTargetStacks(tc.sourceStacks, tc.targetStacks)
 			if err != nil {
 				t.Fatalf("could not create manager %#v", err)
@@ -898,7 +898,7 @@ func TestDeleteOrphanTargetStacks_Statuses(t *testing.T) {
 	)
 
 	tcs := []struct {
-		description  string
+		name         string
 		status       string
 		expectDelete bool
 	}{
@@ -989,7 +989,7 @@ func TestDeleteOrphanTargetStacks_Statuses(t *testing.T) {
 		},
 	}
 	for _, tc := range tcs {
-		t.Run(tc.description, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			logger, err := micrologger.New(micrologger.Config{IOWriter: ioutil.Discard})
 			if err != nil {
 				t.Fatalf("micrologger.New: %v", err)
