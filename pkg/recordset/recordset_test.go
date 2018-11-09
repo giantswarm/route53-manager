@@ -25,7 +25,7 @@ func TestCreateMissingStacks_Cases(t *testing.T) {
 		expectedCreatedStacks []string
 	}{
 		{
-			"create 1 stack",
+			name: "case 0: create 1 stack",
 			[]cloudformation.Stack{
 				cloudformation.Stack{
 					StackName:   aws.String("cluster-foo-guest-main"),
@@ -36,7 +36,7 @@ func TestCreateMissingStacks_Cases(t *testing.T) {
 			[]string{"cluster-foo-guest-recordsets"},
 		},
 		{
-			"create 2 stacks",
+			name: "case 1: create 2 stacks",
 			[]cloudformation.Stack{
 				cloudformation.Stack{
 					StackName:   aws.String("cluster-foo-guest-main"),
@@ -51,7 +51,7 @@ func TestCreateMissingStacks_Cases(t *testing.T) {
 			[]string{"cluster-foo-guest-recordsets", "cluster-bar-guest-recordsets"},
 		},
 		{
-			"create 2 stacks out of 3",
+			name: "case 2: create 2 stacks out of 3",
 			[]cloudformation.Stack{
 				cloudformation.Stack{
 					StackName:   aws.String("cluster-foo-guest-main"),
@@ -75,7 +75,7 @@ func TestCreateMissingStacks_Cases(t *testing.T) {
 			[]string{"cluster-foo-guest-recordsets", "cluster-baz-guest-recordsets"},
 		},
 		{
-			"do not create already existing stack",
+			name: "case 3: do not create already existing stack",
 			[]cloudformation.Stack{
 				cloudformation.Stack{
 					StackName:   aws.String("cluster-foo-guest-main"),
@@ -91,7 +91,7 @@ func TestCreateMissingStacks_Cases(t *testing.T) {
 			nil,
 		},
 		{
-			"do not create stack when there is no source",
+			name: "case 4: do not create stack when there is no source",
 			nil,
 			[]cloudformation.Stack{
 				cloudformation.Stack{
@@ -102,7 +102,7 @@ func TestCreateMissingStacks_Cases(t *testing.T) {
 			nil,
 		},
 		{
-			"do not create stack when there is no source and target",
+			name: "case 5: do not create stack when there is no source and target",
 			nil,
 			nil,
 			nil,
@@ -162,87 +162,87 @@ func TestCreateMissingStacks_Statuses(t *testing.T) {
 		expectCreate bool
 	}{
 		{
-			"create stack when source status is create complete",
+			name: "case 0: create stack when source status is create complete",
 			cloudformation.StackStatusCreateComplete,
 			true,
 		},
 		{
-			"create stack when source status is update complete",
+			name: "case 1: create stack when source status is update complete",
 			cloudformation.StackStatusUpdateComplete,
 			true,
 		},
 		{
-			"do not create stack when source status is rollback complete",
+			name: "case 2: do not create stack when source status is rollback complete",
 			cloudformation.StackStatusRollbackComplete,
 			false,
 		},
 		{
-			"do not create stack when source status is update rollback complete",
+			name: "case 3: do not create stack when source status is update rollback complete",
 			cloudformation.StackStatusUpdateRollbackComplete,
 			false,
 		},
 		{
-			"do not create stack when source status is create in progress",
+			name: "case 4: do not create stack when source status is create in progress",
 			cloudformation.StackStatusCreateInProgress,
 			false,
 		},
 		{
-			"do not create stack when source status is create failed",
+			name: "case 5: do not create stack when source status is create failed",
 			cloudformation.StackStatusCreateFailed,
 			false,
 		},
 		{
-			"do not create stack when source status is rollback in progress",
+			name: "case 6: do not create stack when source status is rollback in progress",
 			cloudformation.StackStatusRollbackInProgress,
 			false,
 		},
 		{
-			"do not create stack when source status is rollback failed",
+			name: "case 7: do not create stack when source status is rollback failed",
 			cloudformation.StackStatusRollbackFailed,
 			false,
 		},
 		{
-			"do not create stack when source status is delete in progress",
+			name: "case 8: do not create stack when source status is delete in progress",
 			cloudformation.StackStatusDeleteInProgress,
 			false,
 		},
 		{
-			"do not create stack when source status is delete failed",
+			name: "case 9: do not create stack when source status is delete failed",
 			cloudformation.StackStatusDeleteFailed,
 			false,
 		},
 		{
-			"do not create stack when source status is delete complete",
+			name: "case 10: do not create stack when source status is delete complete",
 			cloudformation.StackStatusDeleteComplete,
 			false,
 		},
 		{
-			"do not create stack when source status is update in progress",
+			name: "case 11: do not create stack when source status is update in progress",
 			cloudformation.StackStatusUpdateInProgress,
 			false,
 		},
 		{
-			"do not create stack when source status is udpdate complete cleanup in progress",
+			name: "case 12: do not create stack when source status is udpdate complete cleanup in progress",
 			cloudformation.StackStatusUpdateCompleteCleanupInProgress,
 			false,
 		},
 		{
-			"do not create stack when source status is update rollback in progress",
+			name: "case 13: do not create stack when source status is update rollback in progress",
 			cloudformation.StackStatusUpdateRollbackInProgress,
 			false,
 		},
 		{
-			"do not create stack when source status is update rollback failed",
+			name: "case 14: do not create stack when source status is update rollback failed",
 			cloudformation.StackStatusUpdateRollbackFailed,
 			false,
 		},
 		{
-			"do not create stack when source status is update rollback complete cleanup in progress",
+			name: "case 15: do not create stack when source status is update rollback complete cleanup in progress",
 			cloudformation.StackStatusUpdateRollbackCompleteCleanupInProgress,
 			false,
 		},
 		{
-			"do not create stack when source status is review in progress",
+			name: "case 16: do not create stack when source status is review in progress",
 			cloudformation.StackStatusReviewInProgress,
 			false,
 		},
@@ -311,7 +311,7 @@ func TestUpdateCurrentTargetStacks_Cases(t *testing.T) {
 		expectedUpdatedStacks []string
 	}{
 		{
-			"update 1 stack",
+			name: "case 0: update 1 stack",
 			[]cloudformation.Stack{
 				cloudformation.Stack{
 					StackName:   aws.String("cluster-foo-guest-main"),
@@ -327,7 +327,7 @@ func TestUpdateCurrentTargetStacks_Cases(t *testing.T) {
 			[]string{"cluster-foo-guest-recordsets"},
 		},
 		{
-			"update 2 stacks",
+			name: "case 1: update 2 stacks",
 			[]cloudformation.Stack{
 				cloudformation.Stack{
 					StackName:   aws.String("cluster-foo-guest-main"),
@@ -351,7 +351,7 @@ func TestUpdateCurrentTargetStacks_Cases(t *testing.T) {
 			[]string{"cluster-foo-guest-recordsets", "cluster-bar-guest-recordsets"},
 		},
 		{
-			"update 2 stacks out of 3",
+			name: "case 2: update 2 stacks out of 3",
 			[]cloudformation.Stack{
 				cloudformation.Stack{
 					StackName:   aws.String("cluster-foo-guest-main"),
@@ -380,7 +380,7 @@ func TestUpdateCurrentTargetStacks_Cases(t *testing.T) {
 		},
 
 		{
-			"do not update missing target stack",
+			name: "case 3: do not update missing target stack",
 			[]cloudformation.Stack{
 				cloudformation.Stack{
 					StackName:   aws.String("cluster-foo-guest-main"),
@@ -391,7 +391,7 @@ func TestUpdateCurrentTargetStacks_Cases(t *testing.T) {
 			nil,
 		},
 		{
-			"do not update missing source stack",
+			name: "case 4: do not update missing source stack",
 			nil,
 			[]cloudformation.Stack{
 				cloudformation.Stack{
@@ -402,7 +402,7 @@ func TestUpdateCurrentTargetStacks_Cases(t *testing.T) {
 			nil,
 		},
 		{
-			"do not update missing source and target stacks",
+			name: "case 5: do not update missing source and target stacks",
 			nil,
 			nil,
 			nil,
@@ -462,87 +462,87 @@ func TestUpdateCurrentTargetStacks_SourceStatuses(t *testing.T) {
 		expectUpdate bool
 	}{
 		{
-			"update stack when source status is create complete",
+			name: "case 0: update stack when source status is create complete",
 			cloudformation.StackStatusCreateComplete,
 			true,
 		},
 		{
-			"update stack when source status is update complete",
+			name: "case 1: update stack when source status is update complete",
 			cloudformation.StackStatusUpdateComplete,
 			true,
 		},
 		{
-			"do not update stack when source status is rollback complete",
+			name: "case 2: do not update stack when source status is rollback complete",
 			cloudformation.StackStatusRollbackComplete,
 			false,
 		},
 		{
-			"do not update stack when source status is update rollback complete",
+			name: "case 3: do not update stack when source status is update rollback complete",
 			cloudformation.StackStatusUpdateRollbackComplete,
 			false,
 		},
 		{
-			"do not update stack when source status is create in progress",
+			name: "case 4: do not update stack when source status is create in progress",
 			cloudformation.StackStatusCreateInProgress,
 			false,
 		},
 		{
-			"do not update stack when source status is create failed",
+			name: "case 5: do not update stack when source status is create failed",
 			cloudformation.StackStatusCreateFailed,
 			false,
 		},
 		{
-			"do not update stack when source status is rollback in progress",
+			name: "case 6: do not update stack when source status is rollback in progress",
 			cloudformation.StackStatusRollbackInProgress,
 			false,
 		},
 		{
-			"do not update stack when source status is rollback failed",
+			name: "case 7: do not update stack when source status is rollback failed",
 			cloudformation.StackStatusRollbackFailed,
 			false,
 		},
 		{
-			"do not update stack when source status is delete in progress",
+			name: "case 8: do not update stack when source status is delete in progress",
 			cloudformation.StackStatusDeleteInProgress,
 			false,
 		},
 		{
-			"do not update stack when source status is delete failed",
+			name: "case 9: do not update stack when source status is delete failed",
 			cloudformation.StackStatusDeleteFailed,
 			false,
 		},
 		{
-			"do not update stack when source status is delete complete",
+			name: "case 10: do not update stack when source status is delete complete",
 			cloudformation.StackStatusDeleteComplete,
 			false,
 		},
 		{
-			"do not update stack when source status is update in progress",
+			name: "case 11: do not update stack when source status is update in progress",
 			cloudformation.StackStatusUpdateInProgress,
 			false,
 		},
 		{
-			"do not update stack when source status is udpdate complete cleanup in progress",
+			name: "case 12: do not update stack when source status is udpdate complete cleanup in progress",
 			cloudformation.StackStatusUpdateCompleteCleanupInProgress,
 			false,
 		},
 		{
-			"do not update stack when source status is update rollback in progress",
+			name: "case 13: do not update stack when source status is update rollback in progress",
 			cloudformation.StackStatusUpdateRollbackInProgress,
 			false,
 		},
 		{
-			"do not update stack when source status is update rollback failed",
+			name: "case 14: do not update stack when source status is update rollback failed",
 			cloudformation.StackStatusUpdateRollbackFailed,
 			false,
 		},
 		{
-			"do not update stack when source status is update rollback complete cleanup in progress",
+			name: "case 15: do not update stack when source status is update rollback complete cleanup in progress",
 			cloudformation.StackStatusUpdateRollbackCompleteCleanupInProgress,
 			false,
 		},
 		{
-			"do not update stack when source status is review in progress",
+			name: "case 16: do not update stack when source status is review in progress",
 			cloudformation.StackStatusReviewInProgress,
 			false,
 		},
@@ -624,87 +624,87 @@ func TestUpdateCurrentTargetStacks_TargetStatuses(t *testing.T) {
 		expectUpdate bool
 	}{
 		{
-			"update stack when target status is create complete",
+			name: "case 0: update stack when target status is create complete",
 			cloudformation.StackStatusCreateComplete,
 			true,
 		},
 		{
-			"update stack when target status is update complete",
+			name: "case 1: update stack when target status is update complete",
 			cloudformation.StackStatusUpdateComplete,
 			true,
 		},
 		{
-			"update stack when target status is rollback complete",
+			name: "case 2: update stack when target status is rollback complete",
 			cloudformation.StackStatusRollbackComplete,
 			true,
 		},
 		{
-			"update stack when target status is update rollback complete",
+			name: "case 3: update stack when target status is update rollback complete",
 			cloudformation.StackStatusUpdateRollbackComplete,
 			true,
 		},
 		{
-			"update stack when target status is create failed",
+			name: "case 4: update stack when target status is create failed",
 			cloudformation.StackStatusCreateFailed,
 			true,
 		},
 		{
-			"update stack when target status is rollback failed",
+			name: "case 5: update stack when target status is rollback failed",
 			cloudformation.StackStatusRollbackFailed,
 			true,
 		},
 		{
-			"update stack when target status is delete failed",
+			name: "case 6: update stack when target status is delete failed",
 			cloudformation.StackStatusDeleteFailed,
 			true,
 		},
 		{
-			"update stack when target status is update rollback failed",
+			name: "case 7: update stack when target status is update rollback failed",
 			cloudformation.StackStatusUpdateRollbackFailed,
 			true,
 		},
 		{
-			"do not update stack when target status is create in progress",
+			name: "case 8: do not update stack when target status is create in progress",
 			cloudformation.StackStatusCreateInProgress,
 			false,
 		},
 		{
-			"do not update stack when target status is rollback in progress",
+			name: "case 9: do not update stack when target status is rollback in progress",
 			cloudformation.StackStatusRollbackInProgress,
 			false,
 		},
 		{
-			"do not update stack when target status is delete in progress",
+			name: "case 10: do not update stack when target status is delete in progress",
 			cloudformation.StackStatusDeleteInProgress,
 			false,
 		},
 		{
-			"do not update stack when target status is delete complete",
+			name: "case 11: do not update stack when target status is delete complete",
 			cloudformation.StackStatusDeleteComplete,
 			false,
 		},
 		{
-			"do not update stack when target status is update in progress",
+			name: "case 12: do not update stack when target status is update in progress",
 			cloudformation.StackStatusUpdateInProgress,
 			false,
 		},
 		{
-			"do not update stack when target status is udpdate complete cleanup in progress",
+			name: "case 13: do not update stack when target status is udpdate complete cleanup in progress",
 			cloudformation.StackStatusUpdateCompleteCleanupInProgress,
 			false,
 		},
 		{
-			"do not update stack when target status is update rollback in progress",
+			name: "case 14: do not update stack when target status is update rollback in progress",
 			cloudformation.StackStatusUpdateRollbackInProgress,
 			false,
 		},
 		{
-			"do not update stack when target status is update rollback complete cleanup in progress",
+			name: "case 15: do not update stack when target status is update rollback complete cleanup in progress",
 			cloudformation.StackStatusUpdateRollbackCompleteCleanupInProgress,
 			false,
 		},
 		{
-			"do not update stack when target status is review in progress",
+			name: "case 16: do not update stack when target status is review in progress",
 			cloudformation.StackStatusReviewInProgress,
 			false,
 		},
@@ -903,87 +903,87 @@ func TestDeleteOrphanTargetStacks_Statuses(t *testing.T) {
 		expectDelete bool
 	}{
 		{
-			"delete stack when source status is delete complete",
+			name: "case 0: delete stack when source status is delete complete",
 			cloudformation.StackStatusDeleteComplete,
 			true,
 		},
 		{
-			"do not delete stack when source status is delete in progress",
+			name: "case 1: do not delete stack when source status is delete in progress",
 			cloudformation.StackStatusDeleteInProgress,
 			false,
 		},
 		{
-			"do not delete stack when source status is create complete",
+			name: "case 2: do not delete stack when source status is create complete",
 			cloudformation.StackStatusCreateComplete,
 			false,
 		},
 		{
-			"do not delete stack when source status is update complete",
+			name: "case 3: do not delete stack when source status is update complete",
 			cloudformation.StackStatusUpdateComplete,
 			false,
 		},
 		{
-			"do not delete stack when source status is rollback complete",
+			name: "case 4: do not delete stack when source status is rollback complete",
 			cloudformation.StackStatusRollbackComplete,
 			false,
 		},
 		{
-			"do not delete stack when source status is update rollback complete",
+			name: "case 5: do not delete stack when source status is update rollback complete",
 			cloudformation.StackStatusUpdateRollbackComplete,
 			false,
 		},
 		{
-			"do not delete stack when source status is create in progress",
+			name: "case 6: do not delete stack when source status is create in progress",
 			cloudformation.StackStatusCreateInProgress,
 			false,
 		},
 		{
-			"do not delete stack when source status is create failed",
+			name: "case 7: do not delete stack when source status is create failed",
 			cloudformation.StackStatusCreateFailed,
 			false,
 		},
 		{
-			"do not delete stack when source status is rollback in progress",
+			name: "case 8: do not delete stack when source status is rollback in progress",
 			cloudformation.StackStatusRollbackInProgress,
 			false,
 		},
 		{
-			"do not delete stack when source status is rollback failed",
+			name: "case 9: do not delete stack when source status is rollback failed",
 			cloudformation.StackStatusRollbackFailed,
 			false,
 		},
 		{
-			"do not delete stack when source status is delete failed",
+			name: "case 10: do not delete stack when source status is delete failed",
 			cloudformation.StackStatusDeleteFailed,
 			false,
 		},
 		{
-			"do not delete stack when source status is update in progress",
+			name: "case 11: do not delete stack when source status is update in progress",
 			cloudformation.StackStatusUpdateInProgress,
 			false,
 		},
 		{
-			"do not delete stack when source status is udpdate complete cleanup in progress",
+			name: "case 12: do not delete stack when source status is udpdate complete cleanup in progress",
 			cloudformation.StackStatusUpdateCompleteCleanupInProgress,
 			false,
 		},
 		{
-			"do not delete stack when source status is update rollback in progress",
+			name: "case 13: do not delete stack when source status is update rollback in progress",
 			cloudformation.StackStatusUpdateRollbackInProgress,
 			false,
 		},
 		{
-			"do not delete stack when source status is update rollback failed",
+			name: "case 14: do not delete stack when source status is update rollback failed",
 			cloudformation.StackStatusUpdateRollbackFailed,
 			false,
 		},
 		{
-			"do not delete stack when source status is update rollback complete cleanup in progress",
+			name: "case 15: do not delete stack when source status is update rollback complete cleanup in progress",
 			cloudformation.StackStatusUpdateRollbackCompleteCleanupInProgress,
 			false,
 		},
 		{
-			"do not delete stack when source status is review in progress",
+			name: "case 16: do not delete stack when source status is review in progress",
 			cloudformation.StackStatusReviewInProgress,
 			false,
 		},
