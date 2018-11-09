@@ -21,13 +21,11 @@ const (
 )
 
 var (
-	stackStatusCompleteNotDelete = []string{
+	stackStatusValidSource = []string{
 		cloudformation.StackStatusCreateComplete,
-		cloudformation.StackStatusRollbackComplete,
 		cloudformation.StackStatusUpdateComplete,
-		cloudformation.StackStatusUpdateRollbackComplete,
 	}
-	stackStatusCompleteNotDeleteAndFail = []string{
+	stackStatusValidTarget = []string{
 		cloudformation.StackStatusCreateComplete,
 		cloudformation.StackStatusCreateFailed,
 		cloudformation.StackStatusDeleteFailed,
@@ -37,8 +35,25 @@ var (
 		cloudformation.StackStatusUpdateRollbackComplete,
 		cloudformation.StackStatusUpdateRollbackFailed,
 	}
-	stackStatusDeleted = []string{
+	stackStatusValidDelete = []string{
 		cloudformation.StackStatusDeleteComplete,
+	}
+	stackStatusValid = []*string{
+		aws.String(cloudformation.StackStatusCreateComplete),
+		aws.String(cloudformation.StackStatusCreateFailed),
+		aws.String(cloudformation.StackStatusRollbackInProgress),
+		aws.String(cloudformation.StackStatusRollbackFailed),
+		aws.String(cloudformation.StackStatusRollbackComplete),
+		aws.String(cloudformation.StackStatusDeleteInProgress),
+		aws.String(cloudformation.StackStatusDeleteFailed),
+		aws.String(cloudformation.StackStatusUpdateInProgress),
+		aws.String(cloudformation.StackStatusUpdateCompleteCleanupInProgress),
+		aws.String(cloudformation.StackStatusUpdateComplete),
+		aws.String(cloudformation.StackStatusUpdateRollbackInProgress),
+		aws.String(cloudformation.StackStatusUpdateRollbackFailed),
+		aws.String(cloudformation.StackStatusUpdateRollbackCompleteCleanupInProgress),
+		aws.String(cloudformation.StackStatusUpdateRollbackComplete),
+		aws.String(cloudformation.StackStatusReviewInProgress),
 	}
 )
 
@@ -163,23 +178,7 @@ func (m *Manager) targetStacks() ([]cloudformation.Stack, error) {
 
 func getStacks(cl client.StackDescribeLister, re *regexp.Regexp, installation string) ([]cloudformation.Stack, error) {
 	input := &cloudformation.ListStacksInput{
-		StackStatusFilter: []*string{
-			aws.String(cloudformation.StackStatusCreateComplete),
-			aws.String(cloudformation.StackStatusCreateFailed),
-			aws.String(cloudformation.StackStatusRollbackInProgress),
-			aws.String(cloudformation.StackStatusRollbackFailed),
-			aws.String(cloudformation.StackStatusRollbackComplete),
-			aws.String(cloudformation.StackStatusDeleteInProgress),
-			aws.String(cloudformation.StackStatusDeleteFailed),
-			aws.String(cloudformation.StackStatusUpdateInProgress),
-			aws.String(cloudformation.StackStatusUpdateCompleteCleanupInProgress),
-			aws.String(cloudformation.StackStatusUpdateComplete),
-			aws.String(cloudformation.StackStatusUpdateRollbackInProgress),
-			aws.String(cloudformation.StackStatusUpdateRollbackFailed),
-			aws.String(cloudformation.StackStatusUpdateRollbackCompleteCleanupInProgress),
-			aws.String(cloudformation.StackStatusUpdateRollbackComplete),
-			aws.String(cloudformation.StackStatusReviewInProgress),
-		},
+		StackStatusFilter: stackStatusValid,
 	}
 	output, err := cl.ListStacks(input)
 	if err != nil {
@@ -279,7 +278,7 @@ func validStackInstallationTag(stacks *cloudformation.DescribeStacksOutput, inst
 
 func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []cloudformation.Stack) error {
 	m.logger.Log("level", "debug", "message", "create missing target stacks")
-	for _, source := range filterStacksByStatus(sourceStacks, stackStatusCompleteNotDelete) {
+	for _, source := range filterStacksByStatus(sourceStacks, stackStatusValidSource) {
 		found := false
 		sourceClusterName, err := extractClusterName(*source.StackName)
 		if err != nil {
@@ -287,7 +286,7 @@ func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []cloudfo
 			continue
 		}
 
-		for _, target := range dropStacksByStatus(targetStacks, stackStatusDeleted) {
+		for _, target := range dropStacksByStatus(targetStacks, stackStatusValidDelete) {
 			targetClusterName, err := extractClusterName(*target.StackName)
 			if err != nil {
 				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get target stack name %#q", *target.StackName), "stack", fmt.Sprintf("%#v", err))
@@ -329,7 +328,7 @@ func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []cloudfo
 
 func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudformation.Stack) error {
 	m.logger.Log("level", "debug", "message", "update current target stacks")
-	for _, source := range filterStacksByStatus(sourceStacks, stackStatusCompleteNotDelete) {
+	for _, source := range filterStacksByStatus(sourceStacks, stackStatusValidSource) {
 		found := false
 		sourceClusterName, err := extractClusterName(*source.StackName)
 		if err != nil {
@@ -337,7 +336,7 @@ func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudfo
 			continue
 		}
 
-		for _, target := range filterStacksByStatus(targetStacks, stackStatusCompleteNotDeleteAndFail) {
+		for _, target := range filterStacksByStatus(targetStacks, stackStatusValidTarget) {
 			targetClusterName, err := extractClusterName(*target.StackName)
 			if err != nil {
 				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get target stack name %#q", *target.StackName), "stack", fmt.Sprintf("%#v", err))
@@ -378,7 +377,7 @@ func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudfo
 
 func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []cloudformation.Stack) error {
 	m.logger.Log("level", "debug", "message", "delete orphan target stacks")
-	for _, target := range dropStacksByStatus(targetStacks, stackStatusDeleted) {
+	for _, target := range dropStacksByStatus(targetStacks, stackStatusValidDelete) {
 		found := false
 		targetClusterName, err := extractClusterName(*target.StackName)
 		if err != nil {
@@ -386,7 +385,7 @@ func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []cloudfor
 			continue
 		}
 
-		for _, source := range dropStacksByStatus(sourceStacks, stackStatusDeleted) {
+		for _, source := range dropStacksByStatus(sourceStacks, stackStatusValidDelete) {
 			sourceClusterName, err := extractClusterName(*source.StackName)
 			if err != nil {
 				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get source stack name %#q", *source.StackName), "stack", fmt.Sprintf("%#v", err))
