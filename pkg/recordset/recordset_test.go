@@ -995,9 +995,9 @@ func TestDeleteOrphanTargetStacks_Statuses(t *testing.T) {
 				t.Fatalf("micrologger.New: %v", err)
 			}
 
-			targetStacks := []cloudformation.Stack{
+			sourceStacks := []cloudformation.Stack{
 				cloudformation.Stack{
-					StackName:   aws.String("cluster-foo-guest-recordsets"),
+					StackName:   aws.String("cluster-foo-guest-main"),
 					StackStatus: aws.String(tc.status),
 					Tags: []*cloudformation.Tag{
 						&cloudformation.Tag{
@@ -1008,7 +1008,20 @@ func TestDeleteOrphanTargetStacks_Statuses(t *testing.T) {
 				},
 			}
 
-			sourceClient := newSourceWithStacks(nil)
+			targetStacks := []cloudformation.Stack{
+				cloudformation.Stack{
+					StackName:   aws.String("cluster-foo-guest-recordsets"),
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+					Tags: []*cloudformation.Tag{
+						&cloudformation.Tag{
+							Key:   aws.String(installationTag),
+							Value: aws.String(installation),
+						},
+					},
+				},
+			}
+
+			sourceClient := newSourceWithStacks(sourceStacks)
 			targetClient := newTargetWithStacks(targetStacks)
 
 			c := &Config{
@@ -1024,7 +1037,7 @@ func TestDeleteOrphanTargetStacks_Statuses(t *testing.T) {
 				t.Fatalf("NewManager: %v", err)
 			}
 
-			err = m.deleteOrphanTargetStacks(nil, targetStacks)
+			err = m.deleteOrphanTargetStacks(sourceStacks, targetStacks)
 			if err != nil {
 				t.Fatalf("m.Sync: %v", err)
 			}
