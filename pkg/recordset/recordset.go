@@ -48,6 +48,7 @@ var (
 	// Note: this includes all statuses except cloudformation.StackStatusDeleteComplete.
 	stackStatusValid = []*string{
 		aws.String(cloudformation.StackStatusCreateComplete),
+		aws.String(cloudformation.StackStatusCreateInProgress),
 		aws.String(cloudformation.StackStatusCreateFailed),
 		aws.String(cloudformation.StackStatusRollbackInProgress),
 		aws.String(cloudformation.StackStatusRollbackFailed),
