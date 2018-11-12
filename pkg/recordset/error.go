@@ -14,6 +14,15 @@ func IsInvalidConfig(err error) bool {
 	return microerror.Cause(err) == invalidConfigError
 }
 
+var invalidClusterNameError = &microerror.Error{
+	Kind: "invalidClusterNameError",
+}
+
+// IsInvalidClusterNameError asserts invalidClusterNameError.
+func IsInvalidClusterNameError(err error) bool {
+	return microerror.Cause(err) == invalidClusterNameError
+}
+
 var noUpdateNeededError = &microerror.Error{
 	Kind: "noUpdateError",
 }

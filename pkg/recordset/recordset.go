@@ -20,6 +20,52 @@ const (
 	installationTag = "giantswarm.io/installation"
 )
 
+var (
+	// Predefined set of cloudformation stack statuses
+	// which allow for valid data to be retrieved from the stack.
+	stackStatusValidSource = []string{
+		cloudformation.StackStatusCreateComplete,
+		cloudformation.StackStatusUpdateComplete,
+	}
+	// Predefined set of cloudformation stack statuses
+	// which allow for write operations to the stack.
+	stackStatusValidTarget = []string{
+		cloudformation.StackStatusCreateComplete,
+		cloudformation.StackStatusCreateFailed,
+		cloudformation.StackStatusDeleteFailed,
+		cloudformation.StackStatusRollbackComplete,
+		cloudformation.StackStatusRollbackFailed,
+		cloudformation.StackStatusUpdateComplete,
+		cloudformation.StackStatusUpdateRollbackComplete,
+		cloudformation.StackStatusUpdateRollbackFailed,
+	}
+	// Predefined set of cloudformation stack statuses
+	// which indicates a stack has been deleted.
+	stackStatusValidDelete = []string{
+		cloudformation.StackStatusDeleteComplete,
+	}
+	// Predefined set of cloudformation stack statuses used to read from AWS API.
+	// Note: this includes all statuses except cloudformation.StackStatusDeleteComplete.
+	stackStatusValid = []*string{
+		aws.String(cloudformation.StackStatusCreateComplete),
+		aws.String(cloudformation.StackStatusCreateInProgress),
+		aws.String(cloudformation.StackStatusCreateFailed),
+		aws.String(cloudformation.StackStatusRollbackInProgress),
+		aws.String(cloudformation.StackStatusRollbackFailed),
+		aws.String(cloudformation.StackStatusRollbackComplete),
+		aws.String(cloudformation.StackStatusDeleteInProgress),
+		aws.String(cloudformation.StackStatusDeleteFailed),
+		aws.String(cloudformation.StackStatusUpdateInProgress),
+		aws.String(cloudformation.StackStatusUpdateCompleteCleanupInProgress),
+		aws.String(cloudformation.StackStatusUpdateComplete),
+		aws.String(cloudformation.StackStatusUpdateRollbackInProgress),
+		aws.String(cloudformation.StackStatusUpdateRollbackFailed),
+		aws.String(cloudformation.StackStatusUpdateRollbackCompleteCleanupInProgress),
+		aws.String(cloudformation.StackStatusUpdateRollbackComplete),
+		aws.String(cloudformation.StackStatusReviewInProgress),
+	}
+)
+
 type Config struct {
 	Logger       micrologger.Logger
 	Installation string
@@ -126,7 +172,7 @@ func (m *Manager) sourceStacks() ([]cloudformation.Stack, error) {
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
-	m.logger.Log("level", "debug", "message", fmt.Sprintf("source stacks found: %v", getStacksName(result)))
+	m.logger.Log("level", "debug", "message", fmt.Sprintf("found source stacks: %v", getStacksName(result)))
 	return result, nil
 }
 
@@ -135,16 +181,13 @@ func (m *Manager) targetStacks() ([]cloudformation.Stack, error) {
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
-	m.logger.Log("level", "debug", "message", fmt.Sprintf("target stacks found: %v", getStacksName(result)))
+	m.logger.Log("level", "debug", "message", fmt.Sprintf("found target stacks: %v", getStacksName(result)))
 	return result, nil
 }
 
 func getStacks(cl client.StackDescribeLister, re *regexp.Regexp, installation string) ([]cloudformation.Stack, error) {
 	input := &cloudformation.ListStacksInput{
-		StackStatusFilter: []*string{
-			aws.String(cloudformation.StackStatusCreateComplete),
-			aws.String(cloudformation.StackStatusUpdateComplete),
-		},
+		StackStatusFilter: stackStatusValid,
 	}
 	output, err := cl.ListStacks(input)
 	if err != nil {
@@ -178,6 +221,19 @@ func getStacks(cl client.StackDescribeLister, re *regexp.Regexp, installation st
 	return result, nil
 }
 
+// stackHasStatus checks if stack.StackStatus matches any of statues status.
+func stackHasStatus(stack cloudformation.Stack, statuses []string) bool {
+	if stack.StackStatus != nil {
+		for _, status := range statuses {
+			if *stack.StackStatus == status {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 func getStacksName(stacks []cloudformation.Stack) (names []string) {
 	for _, stack := range stacks {
 		names = append(names, *stack.StackName)
@@ -202,13 +258,37 @@ func validStackInstallationTag(stacks *cloudformation.DescribeStacksOutput, inst
 	return -1
 }
 
+// createMissingTargetStacks ensures each source stack has a corresponding target stack created.
+// only source stack with StackStatus matching stackStatusValidSource are processed.
+// only target stack with StackStatus not matching stackStatusValidDelete are processed.
 func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []cloudformation.Stack) error {
 	m.logger.Log("level", "debug", "message", "create missing target stacks")
 	for _, source := range sourceStacks {
 		found := false
-		sourceClusterName := extractClusterName(*source.StackName)
+
+		if !stackHasStatus(source, stackStatusValidSource) {
+			m.logger.Log("level", "debug", "message", fmt.Sprintf("skipped source stack %#q with status %#q", *source.StackName, *source.StackStatus))
+			continue
+		}
+
+		sourceClusterName, err := extractClusterName(*source.StackName)
+		if err != nil {
+			m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get source stack name %#q", *source.StackName), "stack", fmt.Sprintf("%#v", err))
+			continue
+		}
+
 		for _, target := range targetStacks {
-			targetClusterName := extractClusterName(*target.StackName)
+			if stackHasStatus(target, stackStatusValidDelete) {
+				m.logger.Log("level", "debug", "message", fmt.Sprintf("skipped target stack %#q with status %#q", *target.StackName, *target.StackStatus))
+				continue
+			}
+
+			targetClusterName, err := extractClusterName(*target.StackName)
+			if err != nil {
+				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get target stack name %#q", *target.StackName), "stack", fmt.Sprintf("%#v", err))
+				continue
+			}
+
 			if sourceClusterName == targetClusterName {
 				found = true
 				break
@@ -217,34 +297,61 @@ func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []cloudfo
 		if !found {
 			targetStackName := targetStackName(sourceClusterName)
 			data, err := m.getSourceStackData(sourceClusterName)
-			m.logger.Log("level", "debug", "message", fmt.Sprintf("data for %q: %#v", sourceClusterName, data))
 			if err != nil {
-				m.logger.Log("level", "error", "message", fmt.Sprintf("could not get data about %q: %v", sourceClusterName, err))
+				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get source stack data %#q", sourceClusterName), "stack", fmt.Sprintf("%#v", err))
+				continue
 			}
 
 			input, err := m.getCreateStackInput(targetStackName, data, source)
 			if err != nil {
-				m.logger.Log("level", "error", "message", fmt.Sprintf("could not create target stack input %q: %v", targetStackName, err))
+				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to create target stack input %#q", targetStackName), "stack", fmt.Sprintf("%#v", err))
+				continue
 			}
 
 			_, err = m.targetClient.CreateStack(input)
 			if err != nil {
-				m.logger.Log("level", "error", "message", fmt.Sprintf("could not create target stack %q: %v", targetStackName, err))
-			} else {
-				m.logger.Log("level", "debug", "message", fmt.Sprintf("target stack %q created", targetStackName))
+				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to create target stack %#q", targetStackName), "stack", fmt.Sprintf("%#v", err))
+				continue
 			}
+
+			m.logger.Log("level", "debug", "message", fmt.Sprintf("created target stack %#q", targetStackName))
 		}
 	}
+	m.logger.Log("level", "debug", "message", "created missing target stacks")
 	return nil
 }
 
+// updateCurrentTargetStacks ensures each source stack has its corresponding target stack updated.
+// only source stack with StackStatus matching stackStatusValidSource are processed.
+// only target stack with StackStatus matching stackStatusValidTarget are processed.
 func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudformation.Stack) error {
 	m.logger.Log("level", "debug", "message", "update current target stacks")
 	for _, source := range sourceStacks {
 		found := false
-		sourceClusterName := extractClusterName(*source.StackName)
+
+		if !stackHasStatus(source, stackStatusValidSource) {
+			m.logger.Log("level", "debug", "message", fmt.Sprintf("skipped source stack %#q with status %#q", *source.StackName, *source.StackStatus))
+			continue
+		}
+
+		sourceClusterName, err := extractClusterName(*source.StackName)
+		if err != nil {
+			m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get source stack name %#q", *source.StackName), "stack", fmt.Sprintf("%#v", err))
+			continue
+		}
+
 		for _, target := range targetStacks {
-			targetClusterName := extractClusterName(*target.StackName)
+			if !stackHasStatus(target, stackStatusValidTarget) {
+				m.logger.Log("level", "debug", "message", fmt.Sprintf("skipped target stack %#q with status %#q", *target.StackName, *target.StackStatus))
+				continue
+			}
+
+			targetClusterName, err := extractClusterName(*target.StackName)
+			if err != nil {
+				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get target stack name %#q", *target.StackName), "stack", fmt.Sprintf("%#v", err))
+				continue
+			}
+
 			if sourceClusterName == targetClusterName {
 				found = true
 				break
@@ -253,37 +360,62 @@ func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudfo
 		if found {
 			targetStackName := targetStackName(sourceClusterName)
 			data, err := m.getSourceStackData(sourceClusterName)
-			m.logger.Log("level", "debug", "message", fmt.Sprintf("data for %q: %#v", sourceClusterName, data))
 			if err != nil {
-				m.logger.Log("level", "error", "message", fmt.Sprintf("could not get data about %q: %v", sourceClusterName, err))
+				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get source stack data %#q", sourceClusterName), "stack", fmt.Sprintf("%#v", err))
+				continue
 			}
 
 			input, err := m.getUpdateStackInput(targetStackName, data, source)
 			if err != nil {
-				m.logger.Log("level", "error", "message", fmt.Sprintf("could not create target stack input %q: %v", targetStackName, err))
+				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to create target stack input %#q", targetStackName), "stack", fmt.Sprintf("%#v", err))
+				continue
 			}
 
 			_, err = m.targetClient.UpdateStack(input)
 			if IsNoUpdateNeededError(err) {
-				m.logger.Log("level", "debug", "message", fmt.Sprintf("target stack %q is already up to date", targetStackName))
+				m.logger.Log("level", "debug", "message", fmt.Sprintf("skipped target stack %#q (already up to date)", targetStackName))
 			} else if err != nil {
-				m.logger.Log("level", "error", "message", fmt.Sprintf("could not update target stack %q: %v", targetStackName, err))
+				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to update target stack %#q", targetStackName), "stack", fmt.Sprintf("%#v", err))
 			} else {
-				m.logger.Log("level", "debug", "message", fmt.Sprintf("target stack %q updated", targetStackName))
+				m.logger.Log("level", "debug", "message", fmt.Sprintf("updated target stack %#q", targetStackName))
 			}
 		}
 	}
-
+	m.logger.Log("level", "debug", "message", "updated current target stacks")
 	return nil
 }
 
+// deleteOrphanTargetStacks ensures each target stack with no corresponding source stack is deleted.
+// only source stack with StackStatus not matching stackStatusValidDelete are processed.
+// only target stack with StackStatus not matching stackStatusValidDelete are processed.
 func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []cloudformation.Stack) error {
 	m.logger.Log("level", "debug", "message", "delete orphan target stacks")
 	for _, target := range targetStacks {
 		found := false
-		targetClusterName := extractClusterName(*target.StackName)
+
+		if stackHasStatus(target, stackStatusValidDelete) {
+			m.logger.Log("level", "debug", "message", fmt.Sprintf("skipped target stack %#q with status %#q", *target.StackName, *target.StackStatus))
+			continue
+		}
+
+		targetClusterName, err := extractClusterName(*target.StackName)
+		if err != nil {
+			m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get target stack name %#q", *target.StackName), "stack", fmt.Sprintf("%#v", err))
+			continue
+		}
+
 		for _, source := range sourceStacks {
-			sourceClusterName := extractClusterName(*source.StackName)
+			if stackHasStatus(source, stackStatusValidDelete) {
+				m.logger.Log("level", "debug", "message", fmt.Sprintf("skipped source stack %#q with status %#q", *source.StackName, *source.StackStatus))
+				continue
+			}
+
+			sourceClusterName, err := extractClusterName(*source.StackName)
+			if err != nil {
+				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get source stack name %#q", *source.StackName), "stack", fmt.Sprintf("%#v", err))
+				continue
+			}
+
 			if sourceClusterName == targetClusterName {
 				found = true
 				break
@@ -292,12 +424,13 @@ func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []cloudfor
 		if !found {
 			err := m.deleteTargetStack(*target.StackName)
 			if err != nil {
-				m.logger.Log("level", "debug", "message", fmt.Sprintf("failed to delete %q stack", *target.StackName), "stack", fmt.Sprintf("%v", err))
+				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to delete target stack %#q", *target.StackName), "stack", fmt.Sprintf("%#v", err))
 			} else {
-				m.logger.Log("level", "debug", "message", fmt.Sprintf("%q stack deleted", *target.StackName))
+				m.logger.Log("level", "debug", "message", fmt.Sprintf("deleted target stack %#q", *target.StackName))
 			}
 		}
 	}
+	m.logger.Log("level", "debug", "message", "deleted orphan target stacks")
 	return nil
 }
 
@@ -318,7 +451,11 @@ func targetStackName(clusterName string) string {
 	return fmt.Sprintf(targetStackNameFmt, clusterName)
 }
 
-func extractClusterName(sourceStackName string) string {
+func extractClusterName(sourceStackName string) (string, error) {
 	parts := strings.Split(sourceStackName, "-")
-	return parts[1]
+	if len(parts) >= 2 {
+		return parts[1], nil
+	}
+
+	return "", microerror.Maskf(invalidClusterNameError, "cluster name %#q")
 }
