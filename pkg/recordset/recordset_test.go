@@ -1053,49 +1053,49 @@ func TestDeleteOrphanTargetStacks_Statuses(t *testing.T) {
 
 func TestStackHasStatus(t *testing.T) {
 	tcs := []struct {
-		description string
-		input       cloudformation.Stack
-		statuses    []string
-		expected    bool
+		name     string
+		input    cloudformation.Stack
+		statuses []string
+		expected bool
 	}{
 		{
-			"zero value inputs",
-			cloudformation.Stack{},
-			nil,
-			false,
+			name:     "case 0: zero value inputs",
+			input:    cloudformation.Stack{},
+			statuses: nil,
+			expected: false,
 		},
 		{
-			"empty statuses",
-			cloudformation.Stack{
+			name: "case 1: empty statuses",
+			input: cloudformation.Stack{
 				StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
 			},
-			[]string{},
-			false,
+			statuses: []string{},
+			expected: false,
 		},
 		{
-			"non matching statuses",
-			cloudformation.Stack{
+			name: "case 2: non matching statuses",
+			input: cloudformation.Stack{
 				StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
 			},
-			[]string{
+			statuses: []string{
 				cloudformation.StackStatusDeleteComplete,
 			},
-			false,
+			expected: false,
 		},
 		{
-			"one matching status",
-			cloudformation.Stack{
+			name: "case 3: one matching status",
+			input: cloudformation.Stack{
 				StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
 			},
-			[]string{
+			statuses: []string{
 				cloudformation.StackStatusCreateComplete,
 			},
-			true,
+			expected: true,
 		},
 	}
 
 	for _, tc := range tcs {
-		t.Run(tc.description, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			output := stackHasStatus(tc.input, tc.statuses)
 			if tc.expected != output {
 				t.Errorf("expected %v, got %v", tc.expected, output)
