@@ -21,10 +21,14 @@ const (
 )
 
 var (
+	// Predefined set of cloudformation stack statuses
+	// which allow for valid data to be retrieved from the stack.
 	stackStatusValidSource = []string{
 		cloudformation.StackStatusCreateComplete,
 		cloudformation.StackStatusUpdateComplete,
 	}
+	// Predefined set of cloudformation stack statuses
+	// which allow for write operations to the stack.
 	stackStatusValidTarget = []string{
 		cloudformation.StackStatusCreateComplete,
 		cloudformation.StackStatusCreateFailed,
@@ -35,9 +39,13 @@ var (
 		cloudformation.StackStatusUpdateRollbackComplete,
 		cloudformation.StackStatusUpdateRollbackFailed,
 	}
+	// Predefined set of cloudformation stack statuses
+	// which indicates a stack has been deleted.
 	stackStatusValidDelete = []string{
 		cloudformation.StackStatusDeleteComplete,
 	}
+	// Predefined set of cloudformation stack statuses used to read from AWS API.
+	// Note: this includes all statuses except cloudformation.StackStatusDeleteComplete.
 	stackStatusValid = []*string{
 		aws.String(cloudformation.StackStatusCreateComplete),
 		aws.String(cloudformation.StackStatusCreateFailed),
