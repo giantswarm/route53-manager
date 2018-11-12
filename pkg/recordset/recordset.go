@@ -249,6 +249,9 @@ func validStackInstallationTag(stacks *cloudformation.DescribeStacksOutput, inst
 	return -1
 }
 
+// createMissingTargetStacks ensures each source stack has a corresponding target stack created.
+// only source stack with StackStatus matching stackStatusValidSource are processed.
+// only target stack with StackStatus not matching stackStatusValidDelete are processed.
 func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []cloudformation.Stack) error {
 	m.logger.Log("level", "debug", "message", "create missing target stacks")
 	for _, source := range sourceStacks {
@@ -309,6 +312,9 @@ func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []cloudfo
 	return nil
 }
 
+// updateCurrentTargetStacks ensures each source stack has its corresponding target stack updated.
+// only source stack with StackStatus matching stackStatusValidSource are processed.
+// only target stack with StackStatus matching stackStatusValidTarget are processed.
 func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudformation.Stack) error {
 	m.logger.Log("level", "debug", "message", "update current target stacks")
 	for _, source := range sourceStacks {
@@ -370,6 +376,9 @@ func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudfo
 	return nil
 }
 
+// deleteOrphanTargetStacks ensures each target stack with no corresponding source stack is deleted.
+// only source stack with StackStatus not matching stackStatusValidDelete are processed.
+// only target stack with StackStatus not matching stackStatusValidDelete are processed.
 func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []cloudformation.Stack) error {
 	m.logger.Log("level", "debug", "message", "delete orphan target stacks")
 	for _, target := range targetStacks {
