@@ -352,7 +352,7 @@ func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudfo
 			targetStackName := targetStackName(sourceClusterName)
 			data, err := m.getSourceStackData(sourceClusterName)
 			if err != nil {
-				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get srouce stack data %#q", sourceClusterName), "stack", fmt.Sprintf("%#v", err))
+				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get source stack data %#q", sourceClusterName), "stack", fmt.Sprintf("%#v", err))
 			}
 
 			input, err := m.getUpdateStackInput(targetStackName, data, source)
