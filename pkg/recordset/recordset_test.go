@@ -1050,3 +1050,56 @@ func TestDeleteOrphanTargetStacks_Statuses(t *testing.T) {
 		})
 	}
 }
+
+func TestStackHasStatus(t *testing.T) {
+	tcs := []struct {
+		description string
+		input       cloudformation.Stack
+		statuses    []string
+		expected    bool
+	}{
+		{
+			"zero value inputs",
+			cloudformation.Stack{},
+			nil,
+			false,
+		},
+		{
+			"empty statuses",
+			cloudformation.Stack{
+				StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+			},
+			[]string{},
+			false,
+		},
+		{
+			"non matching statuses",
+			cloudformation.Stack{
+				StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+			},
+			[]string{
+				cloudformation.StackStatusDeleteComplete,
+			},
+			false,
+		},
+		{
+			"one matching status",
+			cloudformation.Stack{
+				StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+			},
+			[]string{
+				cloudformation.StackStatusCreateComplete,
+			},
+			true,
+		},
+	}
+
+	for _, tc := range tcs {
+		t.Run(tc.description, func(t *testing.T) {
+			output := stackHasStatus(tc.input, tc.statuses)
+			if tc.expected != output {
+				t.Errorf("expected %v, got %v", tc.expected, output)
+			}
+		})
+	}
+}
