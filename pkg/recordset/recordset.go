@@ -255,7 +255,7 @@ func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []cloudfo
 		found := false
 
 		if !stackHasStatus(source, stackStatusValidSource) {
-			m.logger.Log("level", "warning", "message", fmt.Sprintf("skipped source stack %#q with status %#q", *source.StackName, *source.StackStatus))
+			m.logger.Log("level", "debug", "message", fmt.Sprintf("skipped source stack %#q with status %#q", *source.StackName, *source.StackStatus))
 			continue
 		}
 
@@ -267,7 +267,7 @@ func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []cloudfo
 
 		for _, target := range targetStacks {
 			if stackHasStatus(target, stackStatusValidDelete) {
-				m.logger.Log("level", "warning", "message", fmt.Sprintf("skipped target stack %#q with status %#q", *target.StackName, *target.StackStatus))
+				m.logger.Log("level", "debug", "message", fmt.Sprintf("skipped target stack %#q with status %#q", *target.StackName, *target.StackStatus))
 				continue
 			}
 
@@ -315,7 +315,7 @@ func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudfo
 		found := false
 
 		if !stackHasStatus(source, stackStatusValidSource) {
-			m.logger.Log("level", "warning", "message", fmt.Sprintf("skipped source stack %#q with status %#q", *source.StackName, *source.StackStatus))
+			m.logger.Log("level", "debug", "message", fmt.Sprintf("skipped source stack %#q with status %#q", *source.StackName, *source.StackStatus))
 			continue
 		}
 
@@ -327,7 +327,7 @@ func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudfo
 
 		for _, target := range targetStacks {
 			if !stackHasStatus(target, stackStatusValidTarget) {
-				m.logger.Log("level", "warning", "message", fmt.Sprintf("skipped target stack %#q with status %#q", *target.StackName, *target.StackStatus))
+				m.logger.Log("level", "debug", "message", fmt.Sprintf("skipped target stack %#q with status %#q", *target.StackName, *target.StackStatus))
 				continue
 			}
 
@@ -376,7 +376,7 @@ func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []cloudfor
 		found := false
 
 		if stackHasStatus(target, stackStatusValidDelete) {
-			m.logger.Log("level", "warning", "message", fmt.Sprintf("skipped target stack %#q with status %#q", *target.StackName, *target.StackStatus))
+			m.logger.Log("level", "debug", "message", fmt.Sprintf("skipped target stack %#q with status %#q", *target.StackName, *target.StackStatus))
 			continue
 		}
 
@@ -388,7 +388,7 @@ func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []cloudfor
 
 		for _, source := range sourceStacks {
 			if stackHasStatus(source, stackStatusValidDelete) {
-				m.logger.Log("level", "warning", "message", fmt.Sprintf("skipped source stack %#q with status %#q", *source.StackName, *source.StackStatus))
+				m.logger.Log("level", "debug", "message", fmt.Sprintf("skipped source stack %#q with status %#q", *source.StackName, *source.StackStatus))
 				continue
 			}
 
