@@ -315,7 +315,6 @@ func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []cloudfo
 			_, err = m.targetClient.CreateStack(input)
 			if err != nil {
 				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to create target stack %#q", targetStackName), "stack", fmt.Sprintf("%#v", err))
-
 				continue
 			}
 
@@ -353,11 +352,13 @@ func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudfo
 			data, err := m.getSourceStackData(sourceClusterName)
 			if err != nil {
 				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get source stack data %#q", sourceClusterName), "stack", fmt.Sprintf("%#v", err))
+				continue
 			}
 
 			input, err := m.getUpdateStackInput(targetStackName, data, source)
 			if err != nil {
 				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to create target stack input %#q", targetStackName), "stack", fmt.Sprintf("%#v", err))
+				continue
 			}
 
 			_, err = m.targetClient.UpdateStack(input)
@@ -365,7 +366,6 @@ func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudfo
 				m.logger.Log("level", "debug", "message", fmt.Sprintf("skipped target stack %#q (already up to date)", targetStackName))
 			} else if err != nil {
 				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to update target stack %#q", targetStackName), "stack", fmt.Sprintf("%#v", err))
-
 			} else {
 				m.logger.Log("level", "debug", "message", fmt.Sprintf("updated target stack %#q", targetStackName))
 			}
