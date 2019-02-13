@@ -7,6 +7,7 @@ spec:
   schedule: "*/5 * * * *"
   jobTemplate:
     spec:
+      successfulJobsHistoryLimit: 2
       template:
         spec:
           volumes:
