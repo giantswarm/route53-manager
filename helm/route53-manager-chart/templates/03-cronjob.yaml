@@ -5,9 +5,12 @@ metadata:
   namespace: giantswarm
 spec:
   schedule: "*/5 * * * *"
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
   jobTemplate:
     spec:
-      successfulJobsHistoryLimit: 2
+      # Job timeout
+      activeDeadlineSeconds: 600
       template:
         spec:
           volumes:
