@@ -8,6 +8,8 @@ spec:
   jobTemplate:
     spec:
       successfulJobsHistoryLimit: 2
+      # Job timeout
+      activeDeadlineSeconds: 600
       template:
         spec:
           volumes:
