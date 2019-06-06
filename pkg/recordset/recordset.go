@@ -273,7 +273,7 @@ func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []cloudfo
 
 		sourceClusterName, err := extractClusterName(*source.StackName)
 		if err != nil {
-			m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get source stack name %#q", *source.StackName), "stack", fmt.Sprintf("%#v", err))
+			m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get source stack name %#q", *source.StackName), "stack", microerror.Stack(err))
 			continue
 		}
 
@@ -285,7 +285,7 @@ func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []cloudfo
 
 			targetClusterName, err := extractClusterName(*target.StackName)
 			if err != nil {
-				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get target stack name %#q", *target.StackName), "stack", fmt.Sprintf("%#v", err))
+				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get target stack name %#q", *target.StackName), "stack", microerror.Stack(err))
 				continue
 			}
 
@@ -298,19 +298,19 @@ func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []cloudfo
 			targetStackName := targetStackName(sourceClusterName)
 			data, err := m.getSourceStackData(sourceClusterName)
 			if err != nil {
-				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get source stack data %#q", sourceClusterName), "stack", fmt.Sprintf("%#v", err))
+				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get source stack data %#q", sourceClusterName), "stack", microerror.Stack(err))
 				continue
 			}
 
 			input, err := m.getCreateStackInput(targetStackName, data, source)
 			if err != nil {
-				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to create target stack input %#q", targetStackName), "stack", fmt.Sprintf("%#v", err))
+				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to create target stack input %#q", targetStackName), "stack", microerror.Stack(err))
 				continue
 			}
 
 			_, err = m.targetClient.CreateStack(input)
 			if err != nil {
-				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to create target stack %#q", targetStackName), "stack", fmt.Sprintf("%#v", err))
+				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to create target stack %#q", targetStackName), "stack", microerror.Stack(err))
 				continue
 			}
 
@@ -336,7 +336,7 @@ func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudfo
 
 		sourceClusterName, err := extractClusterName(*source.StackName)
 		if err != nil {
-			m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get source stack name %#q", *source.StackName), "stack", fmt.Sprintf("%#v", err))
+			m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get source stack name %#q", *source.StackName), "stack", microerror.Stack(err))
 			continue
 		}
 
@@ -348,7 +348,7 @@ func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudfo
 
 			targetClusterName, err := extractClusterName(*target.StackName)
 			if err != nil {
-				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get target stack name %#q", *target.StackName), "stack", fmt.Sprintf("%#v", err))
+				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get target stack name %#q", *target.StackName), "stack", microerror.Stack(err))
 				continue
 			}
 
@@ -361,13 +361,13 @@ func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudfo
 			targetStackName := targetStackName(sourceClusterName)
 			data, err := m.getSourceStackData(sourceClusterName)
 			if err != nil {
-				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get source stack data %#q", sourceClusterName), "stack", fmt.Sprintf("%#v", err))
+				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get source stack data %#q", sourceClusterName), "stack", microerror.Stack(err))
 				continue
 			}
 
 			input, err := m.getUpdateStackInput(targetStackName, data, source)
 			if err != nil {
-				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to create target stack input %#q", targetStackName), "stack", fmt.Sprintf("%#v", err))
+				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to create target stack input %#q", targetStackName), "stack", microerror.Stack(err))
 				continue
 			}
 
@@ -375,7 +375,7 @@ func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudfo
 			if IsNoUpdateNeededError(err) {
 				m.logger.Log("level", "debug", "message", fmt.Sprintf("skipped target stack %#q (already up to date)", targetStackName))
 			} else if err != nil {
-				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to update target stack %#q", targetStackName), "stack", fmt.Sprintf("%#v", err))
+				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to update target stack %#q", targetStackName), "stack", microerror.Stack(err))
 			} else {
 				m.logger.Log("level", "debug", "message", fmt.Sprintf("updated target stack %#q", targetStackName))
 			}
@@ -400,7 +400,7 @@ func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []cloudfor
 
 		targetClusterName, err := extractClusterName(*target.StackName)
 		if err != nil {
-			m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get target stack name %#q", *target.StackName), "stack", fmt.Sprintf("%#v", err))
+			m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get target stack name %#q", *target.StackName), "stack", microerror.Stack(err))
 			continue
 		}
 
@@ -412,7 +412,7 @@ func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []cloudfor
 
 			sourceClusterName, err := extractClusterName(*source.StackName)
 			if err != nil {
-				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get source stack name %#q", *source.StackName), "stack", fmt.Sprintf("%#v", err))
+				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get source stack name %#q", *source.StackName), "stack", microerror.Stack(err))
 				continue
 			}
 
@@ -424,7 +424,7 @@ func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []cloudfor
 		if !found {
 			err := m.deleteTargetStack(*target.StackName)
 			if err != nil {
-				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to delete target stack %#q", *target.StackName), "stack", fmt.Sprintf("%#v", err))
+				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to delete target stack %#q", *target.StackName), "stack", microerror.Stack(err))
 			} else {
 				m.logger.Log("level", "debug", "message", fmt.Sprintf("deleted target stack %#q", *target.StackName))
 			}
