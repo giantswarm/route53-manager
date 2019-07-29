@@ -1,8 +1,8 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: route53-manager
-  namespace: giantswarm
+  name: {{ .Values.name }}
+  namespace: {{ .Values.namespace }}
 spec:
   schedule: "*/5 * * * *"
   successfulJobsHistoryLimit: 2
@@ -26,6 +26,10 @@ spec:
               items:
               - key: secret.yaml
                 path: secret.yaml
+          serviceAccountName: {{ .Values.name }}
+          securityContext:
+            runAsUser: {{ .Values.userID }}
+            runAsGroup: {{ .Values.groupID }}
           containers:
           - name: route53-manager
             image: quay.io/giantswarm/route53-manager:[[ .SHA ]]
