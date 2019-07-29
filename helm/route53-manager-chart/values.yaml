@@ -1,4 +1,4 @@
-name: route53-operator
+name: route53-manager
 namespace: giantswarm
 
 userID: 1000
