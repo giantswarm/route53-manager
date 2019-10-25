@@ -21,7 +21,7 @@ Resources:
       HostedZoneId: {{ .HostedZoneID }}
       Name: 'ingress.{{ .ClusterName }}.{{ .HostedZoneName }}'
       Type: CNAME
-      TTL: '900'
+      TTL: '30'
       ResourceRecords:
       - {{ .IngressELBDNS }}
 
@@ -31,7 +31,7 @@ Resources:
       HostedZoneId: {{ .HostedZoneID }}
       Name: '*.{{ .ClusterName }}.{{ .HostedZoneName }}'
       Type: CNAME
-      TTL: '900'
+      TTL: '30'
       ResourceRecords:
       - {{ .IngressELBDNS }}
 
@@ -41,7 +41,7 @@ Resources:
       HostedZoneId: {{ .HostedZoneID }}
       Name: 'api.{{ .ClusterName }}.{{ .HostedZoneName }}'
       Type: CNAME
-      TTL: '900'
+      TTL: '30'
       ResourceRecords:
       - {{ .APIELBDNS }}
 
@@ -51,7 +51,7 @@ Resources:
       HostedZoneId: {{ .HostedZoneID }}
       Name: 'etcd.{{ .ClusterName }}.{{ .HostedZoneName }}'
       Type: CNAME
-      TTL: '900'
+      TTL: '30'
       ResourceRecords:
       - {{ .EtcdInstanceDNS }}
 `
