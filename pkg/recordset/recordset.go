@@ -14,9 +14,15 @@ import (
 )
 
 const (
-	sourceStackNamePattern = "cluster-.*-guest-main"
-	targetStackNamePattern = "cluster-.*-guest-recordsets"
+	// legacySourceStackNamePattern is the pattern for Cloud Formation Stack names
+	// of Tenant Clusters below Giant Swarm Release version 10.0.0, aka legacy
+	// clusters, aka non Node Pool clusters.
+	legacySourceStackNamePattern = "cluster-.*-guest-main"
+	sourceStackNamePattern       = "cluster-.*-tccp"
+	targetStackNamePattern       = "cluster-.*-guest-recordsets"
+)
 
+const (
 	installationTag = "giantswarm.io/installation"
 )
 
@@ -96,13 +102,18 @@ type sourceStackData struct {
 }
 
 var (
-	sourceStackNameRE *regexp.Regexp
-	targetStackNameRE *regexp.Regexp
+	sourceStackNameREs []*regexp.Regexp
+	targetStackNameREs []*regexp.Regexp
 )
 
 func init() {
-	sourceStackNameRE = regexp.MustCompile(sourceStackNamePattern)
-	targetStackNameRE = regexp.MustCompile(targetStackNamePattern)
+	sourceStackNameREs = []*regexp.Regexp{
+		regexp.MustCompile(legacySourceStackNamePattern),
+		regexp.MustCompile(sourceStackNamePattern),
+	}
+	targetStackNameREs = []*regexp.Regexp{
+		regexp.MustCompile(targetStackNamePattern),
+	}
 }
 
 func NewManager(c *Config) (*Manager, error) {
@@ -168,7 +179,7 @@ func (m *Manager) Sync() error {
 }
 
 func (m *Manager) sourceStacks() ([]cloudformation.Stack, error) {
-	result, err := getStacks(m.sourceClient, sourceStackNameRE, m.installation)
+	result, err := getStacks(m.sourceClient, sourceStackNameREs, m.installation)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
@@ -177,7 +188,7 @@ func (m *Manager) sourceStacks() ([]cloudformation.Stack, error) {
 }
 
 func (m *Manager) targetStacks() ([]cloudformation.Stack, error) {
-	result, err := getStacks(m.targetClient, targetStackNameRE, m.installation)
+	result, err := getStacks(m.targetClient, targetStackNameREs, m.installation)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
@@ -185,7 +196,7 @@ func (m *Manager) targetStacks() ([]cloudformation.Stack, error) {
 	return result, nil
 }
 
-func getStacks(cl client.StackDescribeLister, re *regexp.Regexp, installation string) ([]cloudformation.Stack, error) {
+func getStacks(cl client.StackDescribeLister, res []*regexp.Regexp, installation string) ([]cloudformation.Stack, error) {
 	input := &cloudformation.ListStacksInput{
 		StackStatusFilter: stackStatusValid,
 	}
@@ -198,7 +209,7 @@ func getStacks(cl client.StackDescribeLister, re *regexp.Regexp, installation st
 
 	for _, item := range output.StackSummaries {
 		// filter stack by name.
-		if !validStackName(*item, re) {
+		if !validStackName(*item, res) {
 			continue
 		}
 
@@ -242,8 +253,14 @@ func getStacksName(stacks []cloudformation.Stack) (names []string) {
 	return names
 }
 
-func validStackName(stack cloudformation.StackSummary, re *regexp.Regexp) bool {
-	return re.Match([]byte(*stack.StackName))
+func validStackName(stack cloudformation.StackSummary, res []*regexp.Regexp) bool {
+	for _, re := range res {
+		if re.Match([]byte(*stack.StackName)) == true {
+			return true
+		}
+	}
+
+	return false
 }
 
 func validStackInstallationTag(stacks *cloudformation.DescribeStacksOutput, installation string) int {
