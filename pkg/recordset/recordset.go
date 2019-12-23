@@ -18,7 +18,7 @@ const (
 	// of Tenant Clusters below Giant Swarm Release version 10.0.0, aka legacy
 	// clusters, aka non Node Pool clusters.
 	legacySourceStackNamePattern = "cluster-.*-guest-main"
-	sourceStackNamePattern       = "cluster-.*-tccp"
+	sourceStackNamePattern       = "cluster-.*-tccp$"
 	targetStackNamePattern       = "cluster-.*-guest-recordsets"
 )
 
