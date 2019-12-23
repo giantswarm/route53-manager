@@ -317,6 +317,7 @@ func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []cloudfo
 			if err != nil {
 				return microerror.Mask(err)
 			}
+			m.logger.Log("level", "error", "message", fmt.Sprintf("creating stack for %#q with status %#q", *source.StackName, *source.StackStatus))
 
 			targetStackName := targetStackName(sourceClusterName)
 			data, err := m.getSourceStackData(sourceClusterName, isLegacyStack)
