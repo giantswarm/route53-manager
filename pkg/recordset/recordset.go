@@ -255,7 +255,7 @@ func getStacksName(stacks []cloudformation.Stack) (names []string) {
 
 func validStackName(stack cloudformation.StackSummary, res []*regexp.Regexp) bool {
 	for _, re := range res {
-		if re.Match([]byte(*stack.StackName)) == true {
+		if re.Match([]byte(*stack.StackName)) {
 			return true
 		}
 	}
