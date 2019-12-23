@@ -97,6 +97,7 @@ type sourceStackData struct {
 	HostedZoneName  string
 	ClusterName     string
 	IngressELBDNS   string
+	IsLegacyCluster bool
 	APIELBDNS       string
 	EtcdInstanceDNS string
 }
@@ -312,8 +313,13 @@ func (m *Manager) createMissingTargetStacks(sourceStacks, targetStacks []cloudfo
 			}
 		}
 		if !found {
+			isLegacyStack, err := sourceStackIsLegacy(*source.StackName)
+			if err != nil {
+				return microerror.Mask(err)
+			}
+
 			targetStackName := targetStackName(sourceClusterName)
-			data, err := m.getSourceStackData(sourceClusterName)
+			data, err := m.getSourceStackData(sourceClusterName, isLegacyStack)
 			if err != nil {
 				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get source stack data %#q", sourceClusterName), "stack", microerror.Stack(err))
 				continue
@@ -375,8 +381,13 @@ func (m *Manager) updateCurrentTargetStacks(sourceStacks, targetStacks []cloudfo
 			}
 		}
 		if found {
+			isLegacyStack, err := sourceStackIsLegacy(*source.StackName)
+			if err != nil {
+				return microerror.Mask(err)
+			}
+
 			targetStackName := targetStackName(sourceClusterName)
-			data, err := m.getSourceStackData(sourceClusterName)
+			data, err := m.getSourceStackData(sourceClusterName, isLegacyStack)
 			if err != nil {
 				m.logger.Log("level", "error", "message", fmt.Sprintf("failed to get source stack data %#q", sourceClusterName), "stack", microerror.Stack(err))
 				continue
@@ -460,6 +471,10 @@ func (m *Manager) deleteTargetStack(targetStackName string) error {
 		return microerror.Mask(err)
 	}
 	return nil
+}
+
+func sourceStackIsLegacy(sourceStackName string) (bool, error) {
+	return regexp.Match(legacySourceStackNamePattern, []byte(sourceStackName))
 }
 
 func targetStackName(clusterName string) string {

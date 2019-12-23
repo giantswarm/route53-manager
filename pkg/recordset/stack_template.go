@@ -15,6 +15,7 @@ const (
 	targetStackTemplate = `AWSTemplateFormatVersion: 2010-09-09
 Description: Recordset Guest CloudFormation stack.
 Resources:
+  {{ if .IsLegacyCluster -}}
   ingressDNSRecord:
     Type: AWS::Route53::RecordSet
     Properties:
@@ -34,6 +35,7 @@ Resources:
       TTL: '30'
       ResourceRecords:
       - {{ .IngressELBDNS }}
+  {{ end -}}
 
   apiDNSRecord:
     Type: AWS::Route53::RecordSet
@@ -103,11 +105,16 @@ func (m *Manager) getStackTemplateBody(data *sourceStackData) (string, error) {
 	return templateBody.String(), nil
 }
 
-func (m *Manager) getSourceStackData(clusterName string) (*sourceStackData, error) {
-	ingressELBName := clusterName + "-ingress"
-	ingressELBDNS, err := m.getELBDNS(ingressELBName)
-	if err != nil {
-		return nil, microerror.Mask(err)
+func (m *Manager) getSourceStackData(clusterName string, isLegacyCluster bool) (*sourceStackData, error) {
+	var err error
+	var ingressELBDNS string
+
+	if isLegacyCluster {
+		ingressELBName := clusterName + "-ingress"
+		ingressELBDNS, err = m.getELBDNS(ingressELBName)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
 	}
 
 	apiELBName := clusterName + "-api"
@@ -127,6 +134,7 @@ func (m *Manager) getSourceStackData(clusterName string) (*sourceStackData, erro
 		HostedZoneName:  m.targetHostedZoneName,
 		ClusterName:     clusterName,
 		IngressELBDNS:   ingressELBDNS,
+		IsLegacyCluster: isLegacyCluster,
 		APIELBDNS:       apiELBDNS,
 		EtcdInstanceDNS: etcdInstanceDNS,
 	}
