@@ -523,7 +523,7 @@ func (m *Manager) deleteTargetLeftovers() error {
 	}
 
 	if len(route53Changes) > 0 {
-		m.logger.Log("level", "debug", "message", fmt.Sprintf("deleteting non-managed record sets in hosted zone %#q", m.targetHostedZoneID))
+		m.logger.Log("level", "debug", "message", fmt.Sprintf("deleting non-managed record sets in hosted zone %#q", m.targetHostedZoneID))
 
 		changeRecordSetInput := &route53.ChangeResourceRecordSetsInput{
 			ChangeBatch: &route53.ChangeBatch{
