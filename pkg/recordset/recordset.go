@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 
@@ -473,6 +474,73 @@ func (m *Manager) deleteTargetStack(targetStackName string) error {
 	return nil
 }
 
+func (m *Manager) deleteTargetLeftovers(baseDomain string) error {
+	input := &route53.ListResourceRecordSetsInput{
+		HostedZoneId: &m.targetHostedZoneID,
+	}
+	o, err := m.targetClient.ListResourceRecordSets(input)
+
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	resourceRecordSets := o.ResourceRecordSets
+
+	managedRecordSets := managedRecordSets(m.targetHostedZoneName)
+	route53Changes := []*route53.Change{}
+	for _, rr := range resourceRecordSets {
+		m.logger.Log("level", "debug", "message", fmt.Sprintf("looking for non-managed record sets in hosted zone %#q", m.targetHostedZoneID))
+
+		rrPattern := fmt.Sprintf("^*.%s$", baseDomain)
+		match, err := regexp.Match(rrPattern, []byte(*rr.Name))
+		if err != nil {
+			return microerror.Mask(err)
+		}
+
+		if match && !stringInSlice(*rr.Name, managedRecordSets) {
+			route53Change := &route53.Change{
+				Action: aws.String("DELETE"),
+				ResourceRecordSet: &route53.ResourceRecordSet{
+					AliasTarget:     rr.AliasTarget,
+					Name:            rr.Name,
+					ResourceRecords: rr.ResourceRecords,
+					TTL:             rr.TTL,
+					Type:            rr.Type,
+					Weight:          rr.Weight,
+					SetIdentifier:   rr.SetIdentifier,
+				},
+			}
+
+			route53Changes = append(route53Changes, route53Change)
+
+			m.logger.Log("level", "debug", "message", fmt.Sprintf("found non-managed record set %#q in hosted zone %#q", *rr.Name, m.targetHostedZoneID))
+		}
+	}
+
+	if len(route53Changes) > 0 {
+		m.logger.Log("level", "debug", "message", fmt.Sprintf("deleteting non-managed record sets in hosted zone %#q", m.targetHostedZoneID))
+
+		changeRecordSetInput := &route53.ChangeResourceRecordSetsInput{
+			ChangeBatch: &route53.ChangeBatch{
+				Changes: route53Changes,
+			},
+			HostedZoneId: &m.targetHostedZoneID,
+		}
+		/*
+			_, err = m.targetClient.ChangeResourceRecordSets(changeRecordSetInput)
+			if err != nil {
+				return microerror.Mask(err)
+			}
+		*/
+		m.logger.Log("level", "debug", "message", fmt.Sprintf("deleted non-managed record sets in hosted zone %#q", m.targetHostedZoneID))
+	}
+
+	if err != nil {
+		return microerror.Mask(err)
+	}
+	return nil
+}
+
 func sourceStackIsLegacy(sourceStackName string) (bool, error) {
 	return regexp.Match(legacySourceStackNamePattern, []byte(sourceStackName))
 }
@@ -490,4 +558,22 @@ func extractClusterName(sourceStackName string) (string, error) {
 	}
 
 	return "", microerror.Maskf(invalidClusterNameError, "cluster name %#q")
+}
+
+func managedRecordSets(baseDomain string) []string {
+	return []string{
+		fmt.Sprintf("%s.", baseDomain),
+		fmt.Sprintf("\\052.%s.", baseDomain), // \\052 - `*` wildcard record
+		fmt.Sprintf("api.%s.", baseDomain),
+		fmt.Sprintf("etcd.%s.", baseDomain),
+	}
+}
+
+func stringInSlice(str string, list []string) bool {
+	for _, value := range list {
+		if value == str {
+			return true
+		}
+	}
+	return false
 }
