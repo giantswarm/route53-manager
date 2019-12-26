@@ -3,6 +3,7 @@ package recordset
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -497,10 +498,10 @@ func (m *Manager) deleteTargetLeftovers() error {
 	managedRecordSets := managedRecordSets(m.targetHostedZoneName)
 	route53Changes := []*route53.Change{}
 	for _, rr := range resourceRecordSets {
-		m.logger.Log("level", "debug", "message", fmt.Sprintf("looking for non-managed record sets in hosted zone %#q", m.targetHostedZoneID))
-
 		rrPattern := fmt.Sprintf("^*.%s$", m.targetHostedZoneName)
 		match, err := regexp.Match(rrPattern, []byte(*rr.Name))
+		m.logger.Log("level", "debug", "message", fmt.Sprintf("%#q %#q pattern %#q match %#s zone %s", m.targetHostedZoneID, *rr.Name, rrPattern, strconv.FormatBool(match), m.targetHostedZoneName))
+
 		if err != nil {
 			return microerror.Mask(err)
 		}
