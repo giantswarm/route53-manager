@@ -25,6 +25,7 @@ Resources:
       TTL: '30'
       ResourceRecords:
       - {{ .IngressELBDNS }}
+  {{ end -}}
 
   ingressWildcardDNSRecord:
     Type: AWS::Route53::RecordSet
@@ -34,8 +35,7 @@ Resources:
       Type: CNAME
       TTL: '30'
       ResourceRecords:
-      - {{ .IngressELBDNS }}
-  {{ end -}}
+      - 'ingress.{{ .ClusterName }}.{{ .HostedZoneName }}'
 
   apiDNSRecord:
     Type: AWS::Route53::RecordSet
