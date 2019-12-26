@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/elb"
+	"github.com/aws/aws-sdk-go/service/route53"
 )
 
 type sourceClientMock struct {
@@ -135,6 +136,16 @@ func (t *targetClientMock) DescribeStacks(input *cloudformation.DescribeStacksIn
 	return nil, mockClientError
 }
 
+func (t *targetClientMock) ListResourceRecordSets(input *route53.ListResourceRecordSetsInput) (*route53.ListResourceRecordSetsOutput, error) {
+	if t == nil {
+		return nil, mockClientError
+	}
+
+	output := &route53.ListResourceRecordSetsOutput{}
+
+	return output, nil
+}
+
 func (t *targetClientMock) ListStacks(input *cloudformation.ListStacksInput) (*cloudformation.ListStacksOutput, error) {
 	if t == nil {
 		return nil, mockClientError
@@ -171,6 +182,16 @@ func (t *targetClientMock) ListStacks(input *cloudformation.ListStacksInput) (*c
 			output.StackSummaries = append(output.StackSummaries, s)
 		}
 	}
+
+	return output, nil
+}
+
+func (t *targetClientMock) ChangeResourceRecordSets(input *route53.ChangeResourceRecordSetsInput) (*route53.ChangeResourceRecordSetsOutput, error) {
+	if t == nil {
+		return nil, mockClientError
+	}
+
+	output := &route53.ChangeResourceRecordSetsOutput{}
 
 	return output, nil
 }
