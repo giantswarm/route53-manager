@@ -35,7 +35,7 @@ Resources:
       Type: CNAME
       TTL: '30'
       ResourceRecords:
-      - {{ .IngressELBDNS }}
+      - 'ingress.{{ .ClusterName }}.{{ .HostedZoneName }}'
 
   apiDNSRecord:
     Type: AWS::Route53::RecordSet
