@@ -25,6 +25,7 @@ Resources:
       TTL: '30'
       ResourceRecords:
       - {{ .IngressELBDNS }}
+  {{ end -}}
 
   ingressWildcardDNSRecord:
     Type: AWS::Route53::RecordSet
@@ -35,7 +36,6 @@ Resources:
       TTL: '30'
       ResourceRecords:
       - {{ .IngressELBDNS }}
-  {{ end -}}
 
   apiDNSRecord:
     Type: AWS::Route53::RecordSet
