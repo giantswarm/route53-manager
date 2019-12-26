@@ -3,7 +3,6 @@ package recordset
 import (
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -495,18 +494,15 @@ func (m *Manager) deleteTargetLeftovers() error {
 
 	resourceRecordSets := o.ResourceRecordSets
 
-	managedRecordSets := managedRecordSets(m.targetHostedZoneName)
 	route53Changes := []*route53.Change{}
 	for _, rr := range resourceRecordSets {
 		rrPattern := fmt.Sprintf("^*.%s.$", m.targetHostedZoneName)
 		match, err := regexp.Match(rrPattern, []byte(*rr.Name))
-		m.logger.Log("level", "debug", "message", fmt.Sprintf("%#q %#q pattern %#q match %s zone %s", m.targetHostedZoneID, *rr.Name, rrPattern, strconv.FormatBool(match), m.targetHostedZoneName))
-
 		if err != nil {
 			return microerror.Mask(err)
 		}
 
-		if match && !stringInSlice(*rr.Name, managedRecordSets) {
+		if match {
 			route53Change := &route53.Change{
 				Action: aws.String("DELETE"),
 				ResourceRecordSet: &route53.ResourceRecordSet{
@@ -529,18 +525,18 @@ func (m *Manager) deleteTargetLeftovers() error {
 	if len(route53Changes) > 0 {
 		m.logger.Log("level", "debug", "message", fmt.Sprintf("deleteting non-managed record sets in hosted zone %#q", m.targetHostedZoneID))
 
-		/* changeRecordSetInput := &route53.ChangeResourceRecordSetsInput{
+		changeRecordSetInput := &route53.ChangeResourceRecordSetsInput{
 			ChangeBatch: &route53.ChangeBatch{
 				Changes: route53Changes,
 			},
 			HostedZoneId: &m.targetHostedZoneID,
 		}
 
-			_, err = m.targetClient.ChangeResourceRecordSets(changeRecordSetInput)
-			if err != nil {
-				return microerror.Mask(err)
-			}
-		*/
+		_, err = m.targetClient.ChangeResourceRecordSets(changeRecordSetInput)
+		if err != nil {
+			return microerror.Mask(err)
+		}
+
 		m.logger.Log("level", "debug", "message", fmt.Sprintf("deleted non-managed record sets in hosted zone %#q", m.targetHostedZoneID))
 	}
 
@@ -567,22 +563,4 @@ func extractClusterName(sourceStackName string) (string, error) {
 	}
 
 	return "", microerror.Maskf(invalidClusterNameError, "cluster name %#q")
-}
-
-func managedRecordSets(baseDomain string) []string {
-	return []string{
-		fmt.Sprintf("%s.", baseDomain),
-		fmt.Sprintf("\\052.%s.", baseDomain), // \\052 - `*` wildcard record
-		fmt.Sprintf("api.%s.", baseDomain),
-		fmt.Sprintf("etcd.%s.", baseDomain),
-	}
-}
-
-func stringInSlice(str string, list []string) bool {
-	for _, value := range list {
-		if value == str {
-			return true
-		}
-	}
-	return false
 }
