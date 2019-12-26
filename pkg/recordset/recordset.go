@@ -462,7 +462,7 @@ func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []cloudfor
 			if err != nil {
 				m.logger.Log("level", "error", "message", "failed to delete target record sets")
 			} else {
-				m.logger.Log("level", "debug", "message", "deleted target stack %#q")
+				m.logger.Log("level", "debug", "message", "deleted target record sets %#q")
 			}
 
 		}
