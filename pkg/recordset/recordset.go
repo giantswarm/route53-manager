@@ -457,6 +457,14 @@ func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []cloudfor
 			} else {
 				m.logger.Log("level", "debug", "message", fmt.Sprintf("deleted target stack %#q", *target.StackName))
 			}
+
+			err = m.deleteTargetLeftovers()
+			if err != nil {
+				m.logger.Log("level", "error", "message", "failed to delete target record sets")
+			} else {
+				m.logger.Log("level", "debug", "message", "deleted target stack %#q")
+			}
+
 		}
 	}
 	m.logger.Log("level", "debug", "message", "deleted orphan target stacks")
@@ -474,7 +482,7 @@ func (m *Manager) deleteTargetStack(targetStackName string) error {
 	return nil
 }
 
-func (m *Manager) deleteTargetLeftovers(baseDomain string) error {
+func (m *Manager) deleteTargetLeftovers() error {
 	input := &route53.ListResourceRecordSetsInput{
 		HostedZoneId: &m.targetHostedZoneID,
 	}
@@ -491,7 +499,7 @@ func (m *Manager) deleteTargetLeftovers(baseDomain string) error {
 	for _, rr := range resourceRecordSets {
 		m.logger.Log("level", "debug", "message", fmt.Sprintf("looking for non-managed record sets in hosted zone %#q", m.targetHostedZoneID))
 
-		rrPattern := fmt.Sprintf("^*.%s$", baseDomain)
+		rrPattern := fmt.Sprintf("^*.%s$", m.targetHostedZoneName)
 		match, err := regexp.Match(rrPattern, []byte(*rr.Name))
 		if err != nil {
 			return microerror.Mask(err)
@@ -520,13 +528,13 @@ func (m *Manager) deleteTargetLeftovers(baseDomain string) error {
 	if len(route53Changes) > 0 {
 		m.logger.Log("level", "debug", "message", fmt.Sprintf("deleteting non-managed record sets in hosted zone %#q", m.targetHostedZoneID))
 
-		changeRecordSetInput := &route53.ChangeResourceRecordSetsInput{
+		/* changeRecordSetInput := &route53.ChangeResourceRecordSetsInput{
 			ChangeBatch: &route53.ChangeBatch{
 				Changes: route53Changes,
 			},
 			HostedZoneId: &m.targetHostedZoneID,
 		}
-		/*
+
 			_, err = m.targetClient.ChangeResourceRecordSets(changeRecordSetInput)
 			if err != nil {
 				return microerror.Mask(err)
