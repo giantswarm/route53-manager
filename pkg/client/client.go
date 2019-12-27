@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/elb/elbiface"
+	"github.com/aws/aws-sdk-go/service/route53"
 )
 
 type Config struct {
@@ -32,7 +33,9 @@ type SourceInterface interface {
 type TargetInterface interface {
 	StackDescribeLister
 	CreateStack(*cloudformation.CreateStackInput) (*cloudformation.CreateStackOutput, error)
+	ChangeResourceRecordSets(*route53.ChangeResourceRecordSetsInput) (*route53.ChangeResourceRecordSetsOutput, error)
 	DeleteStack(*cloudformation.DeleteStackInput) (*cloudformation.DeleteStackOutput, error)
+	ListResourceRecordSets(*route53.ListResourceRecordSetsInput) (*route53.ListResourceRecordSetsOutput, error)
 	UpdateStack(*cloudformation.UpdateStackInput) (*cloudformation.UpdateStackOutput, error)
 }
 
@@ -40,6 +43,7 @@ type Clients struct {
 	*cloudformation.CloudFormation
 	ec2iface.EC2API
 	elbiface.ELBAPI
+	*route53.Route53
 }
 
 func NewClients(config *Config) *Clients {
@@ -49,6 +53,7 @@ func NewClients(config *Config) *Clients {
 		cloudformation.New(s),
 		ec2.New(s),
 		elb.New(s),
+		route53.New(s),
 	}
 }
 

@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:66bd0ed553045cc76fc38117c1467f421ef04f2067e1a12da505e59bf80a7085"
+  digest = "1:f7590f8727ba09ca111d4b60c1c738412efafa2ddb58e62a3d2ece81a43a8a7c"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -30,12 +30,14 @@
     "private/protocol/query",
     "private/protocol/query/queryutil",
     "private/protocol/rest",
+    "private/protocol/restxml",
     "private/protocol/xml/xmlutil",
     "service/cloudformation",
     "service/ec2",
     "service/ec2/ec2iface",
     "service/elb",
     "service/elb/elbiface",
+    "service/route53",
     "service/sts",
   ]
   pruneopts = "UT"
@@ -78,12 +80,12 @@
   revision = "d866337f739365a54de5924b8a7b29df17693ef8"
 
 [[projects]]
-  digest = "1:591460fbfc463bda7071ac906bed19cbf64cffd5fcb80a6d1490e87b9dfad942"
+  digest = "1:c4b5592c342f273e18de68e16957f536f6648f2e90c9d7ece653ac90c22079a9"
   name = "github.com/go-ini/ini"
   packages = ["."]
   pruneopts = "UT"
-  revision = "87e589f4917038ae250cff2446db7573f47e97ca"
-  version = "v1.51.0"
+  revision = "94291fffe2b14f4632ec0e67c1bfecfc1287a168"
+  version = "v1.51.1"
 
 [[projects]]
   digest = "1:0cfcded8689c2c964c223650009c5dd9e283c22d57f18f2335aafa16cc22acf1"
@@ -244,11 +246,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:d2596218ce23d219199231ef6b5108ab3accc4fd1d63ba90ae465121eec44781"
+  digest = "1:340ce39e1fad43677be897e31020e3b0941d26d9ef0b250f08908bffff4263c3"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "4a24b406529242041050cb1dec3e0e4c46a5f1b6"
+  revision = "c709ea063b76879dc9915358f55d4d77c16ab6d5"
 
 [[projects]]
   digest = "1:1093f2eb4b344996604f7d8b29a16c5b22ab9e1b25652140d3fede39f640d5cd"
@@ -266,12 +268,12 @@
   version = "v0.3.2"
 
 [[projects]]
-  digest = "1:591460fbfc463bda7071ac906bed19cbf64cffd5fcb80a6d1490e87b9dfad942"
+  digest = "1:c4b5592c342f273e18de68e16957f536f6648f2e90c9d7ece653ac90c22079a9"
   name = "gopkg.in/ini.v1"
   packages = ["."]
   pruneopts = "UT"
-  revision = "87e589f4917038ae250cff2446db7573f47e97ca"
-  version = "v1.51.0"
+  revision = "94291fffe2b14f4632ec0e67c1bfecfc1287a168"
+  version = "v1.51.1"
 
 [[projects]]
   digest = "1:b75b3deb2bce8bc079e16bb2aecfe01eb80098f5650f9e93e5643ca8b7b73737"
@@ -294,6 +296,7 @@
     "github.com/aws/aws-sdk-go/service/ec2/ec2iface",
     "github.com/aws/aws-sdk-go/service/elb",
     "github.com/aws/aws-sdk-go/service/elb/elbiface",
+    "github.com/aws/aws-sdk-go/service/route53",
     "github.com/giantswarm/microerror",
     "github.com/giantswarm/microkit/flag",
     "github.com/giantswarm/micrologger",

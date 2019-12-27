@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 
@@ -456,6 +457,14 @@ func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []cloudfor
 			} else {
 				m.logger.Log("level", "debug", "message", fmt.Sprintf("deleted target stack %#q", *target.StackName))
 			}
+
+			err = m.deleteTargetLeftovers()
+			if err != nil {
+				m.logger.Log("level", "error", "message", "failed to delete target record sets")
+			} else {
+				m.logger.Log("level", "debug", "message", "deleted target record sets %#q")
+			}
+
 		}
 	}
 	m.logger.Log("level", "debug", "message", "deleted orphan target stacks")
@@ -467,6 +476,70 @@ func (m *Manager) deleteTargetStack(targetStackName string) error {
 		StackName: aws.String(targetStackName),
 	}
 	_, err := m.targetClient.DeleteStack(input)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+	return nil
+}
+
+func (m *Manager) deleteTargetLeftovers() error {
+	input := &route53.ListResourceRecordSetsInput{
+		HostedZoneId: &m.targetHostedZoneID,
+	}
+	o, err := m.targetClient.ListResourceRecordSets(input)
+
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	resourceRecordSets := o.ResourceRecordSets
+
+	route53Changes := []*route53.Change{}
+	for _, rr := range resourceRecordSets {
+		rrPattern := fmt.Sprintf("^*.%s.$", m.targetHostedZoneName)
+		match, err := regexp.Match(rrPattern, []byte(*rr.Name))
+		if err != nil {
+			return microerror.Mask(err)
+		}
+
+		if match {
+			route53Change := &route53.Change{
+				Action: aws.String("DELETE"),
+				ResourceRecordSet: &route53.ResourceRecordSet{
+					AliasTarget:     rr.AliasTarget,
+					Name:            rr.Name,
+					ResourceRecords: rr.ResourceRecords,
+					TTL:             rr.TTL,
+					Type:            rr.Type,
+					Weight:          rr.Weight,
+					SetIdentifier:   rr.SetIdentifier,
+				},
+			}
+
+			route53Changes = append(route53Changes, route53Change)
+
+			m.logger.Log("level", "debug", "message", fmt.Sprintf("found non-managed record set %#q in hosted zone %#q", *rr.Name, m.targetHostedZoneID))
+		}
+	}
+
+	if len(route53Changes) > 0 {
+		m.logger.Log("level", "debug", "message", fmt.Sprintf("deleting non-managed record sets in hosted zone %#q", m.targetHostedZoneID))
+
+		changeRecordSetInput := &route53.ChangeResourceRecordSetsInput{
+			ChangeBatch: &route53.ChangeBatch{
+				Changes: route53Changes,
+			},
+			HostedZoneId: &m.targetHostedZoneID,
+		}
+
+		_, err = m.targetClient.ChangeResourceRecordSets(changeRecordSetInput)
+		if err != nil {
+			return microerror.Mask(err)
+		}
+
+		m.logger.Log("level", "debug", "message", fmt.Sprintf("deleted non-managed record sets in hosted zone %#q", m.targetHostedZoneID))
+	}
+
 	if err != nil {
 		return microerror.Mask(err)
 	}
