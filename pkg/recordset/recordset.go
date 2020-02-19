@@ -502,7 +502,8 @@ func (m *Manager) deleteTargetLeftovers(targetClusterName string) error {
 			return microerror.Mask(err)
 		}
 
-		if match {
+		managedRecordSets := getManagedRecordSets(targetClusterName, m.targetHostedZoneName)
+		if match && !stringInSlice(*rr.Name, managedRecordSets) {
 			route53Change := &route53.Change{
 				Action: aws.String("DELETE"),
 				ResourceRecordSet: &route53.ResourceRecordSet{
@@ -563,4 +564,22 @@ func extractClusterName(sourceStackName string) (string, error) {
 	}
 
 	return "", microerror.Maskf(invalidClusterNameError, "cluster name %#q")
+}
+
+func getManagedRecordSets(clusterID, baseDomain string) []string {
+	return []string{
+		fmt.Sprintf("\\052.%s.%s.", clusterID, baseDomain), // \\052 - `*` wildcard record
+		fmt.Sprintf("api.%s.%s.", clusterID, baseDomain),
+		fmt.Sprintf("etcd.%s.%s.", clusterID, baseDomain),
+		fmt.Sprintf("ingress.%s.%s.", clusterID, baseDomain),
+	}
+}
+
+func stringInSlice(str string, list []string) bool {
+	for _, value := range list {
+		if value == str {
+			return true
+		}
+	}
+	return false
 }
