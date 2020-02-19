@@ -458,7 +458,7 @@ func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []cloudfor
 				m.logger.Log("level", "debug", "message", fmt.Sprintf("deleted target stack %#q", *target.StackName))
 			}
 
-			err = m.deleteTargetLeftovers()
+			err = m.deleteTargetLeftovers(targetClusterName)
 			if err != nil {
 				m.logger.Log("level", "error", "message", "failed to delete target record sets")
 			} else {
@@ -482,7 +482,7 @@ func (m *Manager) deleteTargetStack(targetStackName string) error {
 	return nil
 }
 
-func (m *Manager) deleteTargetLeftovers() error {
+func (m *Manager) deleteTargetLeftovers(targetClusterName string) error {
 	input := &route53.ListResourceRecordSetsInput{
 		HostedZoneId: &m.targetHostedZoneID,
 	}
@@ -496,7 +496,7 @@ func (m *Manager) deleteTargetLeftovers() error {
 
 	route53Changes := []*route53.Change{}
 	for _, rr := range resourceRecordSets {
-		rrPattern := fmt.Sprintf("^*.%s.$", m.targetHostedZoneName)
+		rrPattern := fmt.Sprintf("^*.%s.%s.$", targetClusterName, m.targetHostedZoneName)
 		match, err := regexp.Match(rrPattern, []byte(*rr.Name))
 		if err != nil {
 			return microerror.Mask(err)
