@@ -460,9 +460,9 @@ func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []cloudfor
 
 			err = m.deleteTargetLeftovers(targetClusterName)
 			if err != nil {
-				m.logger.Log("level", "error", "message", "failed to delete target record sets")
+				m.logger.Log("level", "error", "message", "failed to delete target record sets leftovers")
 			} else {
-				m.logger.Log("level", "debug", "message", "deleted target record sets %#q")
+				m.logger.Log("level", "debug", "message", "deleted target record sets leftovers")
 			}
 
 		}
