@@ -458,11 +458,11 @@ func (m *Manager) deleteOrphanTargetStacks(sourceStacks, targetStacks []cloudfor
 				m.logger.Log("level", "debug", "message", fmt.Sprintf("deleted target stack %#q", *target.StackName))
 			}
 
-			err = m.deleteTargetLeftovers()
+			err = m.deleteTargetLeftovers(targetClusterName)
 			if err != nil {
-				m.logger.Log("level", "error", "message", "failed to delete target record sets")
+				m.logger.Log("level", "error", "message", "failed to delete target record sets leftovers")
 			} else {
-				m.logger.Log("level", "debug", "message", "deleted target record sets %#q")
+				m.logger.Log("level", "debug", "message", "deleted target record sets leftovers")
 			}
 
 		}
@@ -482,7 +482,7 @@ func (m *Manager) deleteTargetStack(targetStackName string) error {
 	return nil
 }
 
-func (m *Manager) deleteTargetLeftovers() error {
+func (m *Manager) deleteTargetLeftovers(targetClusterName string) error {
 	input := &route53.ListResourceRecordSetsInput{
 		HostedZoneId: &m.targetHostedZoneID,
 	}
@@ -496,13 +496,14 @@ func (m *Manager) deleteTargetLeftovers() error {
 
 	route53Changes := []*route53.Change{}
 	for _, rr := range resourceRecordSets {
-		rrPattern := fmt.Sprintf("^*.%s.$", m.targetHostedZoneName)
+		rrPattern := fmt.Sprintf("^*.%s.%s.$", targetClusterName, m.targetHostedZoneName)
 		match, err := regexp.Match(rrPattern, []byte(*rr.Name))
 		if err != nil {
 			return microerror.Mask(err)
 		}
 
-		if match {
+		managedRecordSets := getManagedRecordSets(targetClusterName, m.targetHostedZoneName)
+		if match && !stringInSlice(*rr.Name, managedRecordSets) {
 			route53Change := &route53.Change{
 				Action: aws.String("DELETE"),
 				ResourceRecordSet: &route53.ResourceRecordSet{
@@ -563,4 +564,22 @@ func extractClusterName(sourceStackName string) (string, error) {
 	}
 
 	return "", microerror.Maskf(invalidClusterNameError, "cluster name %#q")
+}
+
+func getManagedRecordSets(clusterID, baseDomain string) []string {
+	return []string{
+		fmt.Sprintf("\\052.%s.%s.", clusterID, baseDomain), // \\052 - `*` wildcard record
+		fmt.Sprintf("api.%s.%s.", clusterID, baseDomain),
+		fmt.Sprintf("etcd.%s.%s.", clusterID, baseDomain),
+		fmt.Sprintf("ingress.%s.%s.", clusterID, baseDomain),
+	}
+}
+
+func stringInSlice(str string, list []string) bool {
+	for _, value := range list {
+		if value == str {
+			return true
+		}
+	}
+	return false
 }
