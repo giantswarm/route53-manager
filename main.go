@@ -28,8 +28,7 @@ func mainWithError() (err error) {
 	{
 		newLogger, err = micrologger.New(micrologger.Config{})
 		if err != nil {
-			return microerror.Maskf(err, "micrologger.New")
-		}
+			return microerror.Mask(err)		}
 	}
 
 	var newCommand *command.Command
