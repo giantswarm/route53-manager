@@ -62,5 +62,9 @@ func newSession(config *Config) *session.Session {
 		Credentials: credentials.NewStaticCredentials(config.AccessKeyID, config.AccessKeySecret, config.SessionToken),
 		Region:      aws.String(config.Region),
 	}
-	return session.New(awsCfg)
+	s, err := session.NewSession(awsCfg)
+	if err != nil {
+		panic(err)
+	}
+	return s
 }

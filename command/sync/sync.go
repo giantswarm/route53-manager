@@ -92,7 +92,7 @@ func (c *Command) Execute(cmd *cobra.Command, args []string) {
 
 	err = c.execute()
 	if err != nil {
-		c.logger.Log("level", "error", "message", fmt.Sprintf("command %#q failed", cmd.Name()), "stack", microerror.Stack(microerror.Mask(err)), "verbosity", 0)
+		c.logger.Log("level", "error", "message", fmt.Sprintf("command %#q failed", cmd.Name()), "stack", microerror.JSON(microerror.Mask(err)), "verbosity", 0)
 		os.Exit(1)
 	}
 }
