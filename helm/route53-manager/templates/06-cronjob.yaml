@@ -32,7 +32,7 @@ spec:
             runAsGroup: {{ .Values.groupID }}
           containers:
           - name: route53-manager
-            image: "{{ .Values.Installation.V1.Registry.Domain }}/giantswarm/route53-manager:[[ .SHA ]]"
+            image: "{{ .Values.Installation.V1.Registry.Domain }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
             volumeMounts:
             - name: route53-manager-configmap
               mountPath: /var/run/route53-manager/configmap/
