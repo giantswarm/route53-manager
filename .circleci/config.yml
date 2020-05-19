@@ -1,65 +1,54 @@
-orbs:
-  architect: giantswarm/architect@0.4.5
-
 version: 2.1
-jobs:
-  build:
-    machine: true
-    steps:
-    - checkout
-
-    - run: |
-        wget -q $(curl -sS -H "Authorization: token $RELEASE_TOKEN" https://api.github.com/repos/giantswarm/architect/releases/tags/v1.0.0 | grep browser_download_url | head -n 1 | cut -d '"' -f 4)
-        chmod +x ./architect
-        ./architect version
-
-    - run: |
-        date +"%Y" > /tmp/year
-        date +"%m" > /tmp/month
-        date +"%d" > /tmp/day
-    - restore_cache:
-        keys:
-        - go-cache-v1-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/month" }}-{{ checksum "/tmp/day" }}
-        - go-cache-v1-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/month" }}
-        - go-cache-v1-{{ checksum "/tmp/year" }}
-
-    - run: ./architect build
-
-    - store_test_results:
-        path: /tmp/results
-
-    - save_cache:
-        key: go-cache-v1-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/month" }}-{{ checksum "/tmp/day" }}
-        paths:
-        - /tmp/go/cache
-
-    - persist_to_workspace:
-        root: .
-        paths:
-        - ./route53-manager
-        - ./architect
-
-  deploy:
-    machine: true
-    steps:
-    - checkout
-    - attach_workspace:
-        at: .
-    - deploy:
-        command: |
-            ./architect deploy
+orbs:
+  architect: giantswarm/architect@0.8.14
 
 workflows:
   build:
     jobs:
-      - build
-      - architect/push-to-docker-legacy:
+      - architect/go-build:
+          name: build
+          binary: route53-manager
+          filters:
+            tags:
+              only: /^v.*/
+
+      - architect/push-to-docker:
           name: push-route53-manager-to-quay
           image: "quay.io/giantswarm/route53-manager"
           username_envar: "QUAY_USERNAME"
           password_envar: "QUAY_PASSWORD"
           requires:
             - build
+          # Needed to trigger job also on git tag.
+          filters:
+            tags:
+              only: /^v.*/
+
+      - architect/push-to-docker:
+          name: push-route53-manager-to-aliyun
+          image: "registry-intl.cn-shanghai.aliyuncs.com/giantswarm/route53-manager"
+          username_envar: "ALIYUN_USERNAME"
+          password_envar: "ALIYUN_PASSWORD"
+          requires:
+            - build
+          # Needed to trigger job only on git tag.
+          filters:
+            branches:
+              only: master
+            tags:
+              only: /^v.*/
+
+      - architect/push-to-app-catalog:
+          name: push-route53-manager-to-control-plane-app-catalog
+          app_catalog: "control-plane-catalog"
+          app_catalog_test: "control-plane-test-catalog"
+          chart: "route53-manager"
+          requires:
+            - push-route53-manager-to-quay
+          # Needed to trigger job also on git tag.
+          filters:
+            tags:
+              only: /^v.*/
 
       - hold-push-route53-manager-to-aliyun-pr:
           type: approval
@@ -95,11 +84,48 @@ workflows:
           filters:
             branches:
               only: master
-      - deploy:
-          name: deploy
+
+      - architect/push-to-app-collection:
+          context: architect
+          name: push-route53-manager-to-aws-app-collection
+          app_name: "route53-manager"
+          app_namespace: "monitoring"
+          app_collection_repo: "aws-app-collection"
+          unique: "true"
           requires:
-            - push-route53-manager-to-aliyun-master
-            - push-route53-manager-to-quay 
+            - push-route53-manager-to-control-plane-app-catalog
           filters:
             branches:
-              only: master
+              ignore: /.*/
+            tags:
+              only: /^v.*/
+
+      - architect/push-to-app-collection:
+          context: architect
+          name: push-route53-manager-to-azure-app-collection
+          app_name: "route53-manager"
+          app_namespace: "monitoring"
+          app_collection_repo: "azure-app-collection"
+          unique: "true"
+          requires:
+            - push-route53-manager-to-control-plane-app-catalog
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v.*/
+
+      - architect/push-to-app-collection:
+          context: architect
+          name: push-route53-manager-to-kvm-app-collection
+          app_name: "route53-manager"
+          app_namespace: "monitoring"
+          app_collection_repo: "kvm-app-collection"
+          unique: "true"
+          requires:
+            - push-route53-manager-to-control-plane-app-catalog
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v.*/
