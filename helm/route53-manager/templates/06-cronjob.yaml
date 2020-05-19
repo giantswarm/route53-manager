@@ -1,3 +1,4 @@
+{{ if .Values.Installation.V1.Provider.AWS.Route53.Enabled }}
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
@@ -47,3 +48,4 @@ spec:
             - --config.files=config
             - --config.files=secret
           restartPolicy: Never
+{{ end }}

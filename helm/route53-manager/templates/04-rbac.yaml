@@ -1,3 +1,4 @@
+{{ if .Values.Installation.V1.Provider.AWS.Route53.Enabled }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -24,3 +25,4 @@ roleRef:
   kind: ClusterRole
   name: {{ .Values.name }}-psp
   apiGroup: rbac.authorization.k8s.io
+{{ end }}

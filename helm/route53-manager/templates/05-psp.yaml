@@ -1,8 +1,7 @@
+{{ if .Values.Installation.V1.Provider.AWS.Route53.Enabled }}
 apiVersion: policy/v1beta1
 kind: PodSecurityPolicy
-metadata:
-  name: {{ .Values.name }}-psp
-spec:
+metadata: name: {{ .Values.name }}-psp spec:
   privileged: false
   fsGroup:
     rule: MustRunAs
@@ -27,3 +26,4 @@ spec:
   hostNetwork: false
   hostIPC: false
   hostPID: false
+{{ end }}
