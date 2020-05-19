@@ -9,6 +9,6 @@ var mockClientError = &microerror.Error{
 }
 
 // IsMockClientError asserts mockClientError.
-func IsMockClientError(err error) bool {
+func IsMockClientError(err error) bool { // nolint: unused
 	return microerror.Cause(err) == mockClientError
 }

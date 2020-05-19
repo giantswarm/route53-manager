@@ -28,7 +28,8 @@ func mainWithError() (err error) {
 	{
 		newLogger, err = micrologger.New(micrologger.Config{})
 		if err != nil {
-			return microerror.Mask(err)		}
+			return microerror.Mask(err)
+		}
 	}
 
 	var newCommand *command.Command
@@ -48,7 +49,5 @@ func mainWithError() (err error) {
 		}
 	}
 
-	newCommand.CobraCommand().Execute()
-
-	return nil
+	return newCommand.CobraCommand().Execute()
 }
