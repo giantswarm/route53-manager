@@ -1,0 +1,23 @@
+Installation:
+  V1:
+    Name: ""
+    Provider:
+      AWS:
+        Route53:
+          Enabled: false
+        S3AccessLogsExpiration: 0
+        TrustedAdvisor:
+          Enabled: false
+      Kind: ""
+    Registry:
+      Domain: ""
+    Secret:
+      Route53Manager:
+        SecretYaml: ""
+      Registry:
+        PullSecret:
+          DockerConfigJSON: ""
+    Security:
+      RestrictAccess:
+        GuestAPI:
+          Public: false
