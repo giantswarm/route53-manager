@@ -7,6 +7,7 @@ workflows:
     jobs:
       - architect/go-build:
           name: build-route53-manager
+          context: architect
           binary: route53-manager
           filters:
             tags:
@@ -14,6 +15,7 @@ workflows:
 
       - architect/push-to-docker:
           name: push-route53-manager-to-quay
+          context: architect
           image: "quay.io/giantswarm/route53-manager"
           username_envar: "QUAY_USERNAME"
           password_envar: "QUAY_PASSWORD"
@@ -26,6 +28,7 @@ workflows:
 
       - architect/push-to-docker:
           name: push-route53-manager-to-aliyun
+          context: architect
           image: "registry-intl.cn-shanghai.aliyuncs.com/giantswarm/route53-manager"
           username_envar: "ALIYUN_USERNAME"
           password_envar: "ALIYUN_PASSWORD"
@@ -40,6 +43,7 @@ workflows:
 
       - architect/push-to-app-catalog:
           name: push-route53-manager-to-control-plane-app-catalog
+          context: architect
           app_catalog: "control-plane-catalog"
           app_catalog_test: "control-plane-test-catalog"
           chart: "route53-manager"
@@ -61,6 +65,7 @@ workflows:
 
       - architect/push-to-docker-legacy:
           name: push-route53-manager-to-aliyun-pr
+          context: architect
           image: "registry-intl.cn-shanghai.aliyuncs.com/giantswarm/route53-manager"
           username_envar: "ALIYUN_USERNAME"
           password_envar: "ALIYUN_PASSWORD"
@@ -75,6 +80,7 @@ workflows:
       # Push to Aliyun should execute without manual approval on master.
       - architect/push-to-docker-legacy:
           name: push-route53-manager-to-aliyun-master
+          context: architect
           image: "registry-intl.cn-shanghai.aliyuncs.com/giantswarm/route53-manager"
           username_envar: "ALIYUN_USERNAME"
           password_envar: "ALIYUN_PASSWORD"
@@ -86,8 +92,8 @@ workflows:
               only: master
 
       - architect/push-to-app-collection:
-          context: architect
           name: push-route53-manager-to-aws-app-collection
+          context: architect
           app_name: "route53-manager"
           app_namespace: "monitoring"
           app_collection_repo: "aws-app-collection"
