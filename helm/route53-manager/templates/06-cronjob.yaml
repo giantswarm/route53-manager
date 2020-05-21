@@ -1,3 +1,4 @@
+{{ if .Values.Installation.V1.Provider.AWS.Route53.Enabled }}
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
@@ -32,7 +33,7 @@ spec:
             runAsGroup: {{ .Values.groupID }}
           containers:
           - name: route53-manager
-            image: "{{ .Values.Installation.V1.Registry.Domain }}/giantswarm/route53-manager:[[ .SHA ]]"
+            image: "{{ .Values.Installation.V1.Registry.Domain }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
             volumeMounts:
             - name: route53-manager-configmap
               mountPath: /var/run/route53-manager/configmap/
@@ -47,3 +48,4 @@ spec:
             - --config.files=config
             - --config.files=secret
           restartPolicy: Never
+{{ end }}

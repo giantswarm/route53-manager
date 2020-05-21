@@ -1,2 +1,8 @@
-name: route53-manager-chart
-version: 1.0.0-[[ .SHA ]]
+apiVersion: v1
+name: route53-manager
+description: >-
+  route53-manager serves as a temporary route53 stand-in for China-based
+  installations.
+home: https://github.com/giantswarm/route53-manager
+version: [[ .Version ]]
+appVersion: [[ .AppVersion ]]
