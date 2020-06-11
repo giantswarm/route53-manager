@@ -200,10 +200,6 @@ func (m *Manager) getEniList(clusterID string, baseDomain string) ([]EtcdEni, er
 		return nil, microerror.Mask(err)
 	}
 
-	if len(output.NetworkInterfaces) == 0 {
-		return nil, microerror.Mask(tooFewResultsError)
-	}
-
 	for i, nic := range output.NetworkInterfaces {
 		e := EtcdEni{
 			DNSName:   key.EtcdENIDNSName(baseDomain, i),
