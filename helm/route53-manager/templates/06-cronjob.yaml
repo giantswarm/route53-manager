@@ -1,4 +1,4 @@
-{{ if .Values.Installation.V1.Provider.AWS.Route53.Enabled }}
+{{ if not .Values.Installation.V1.Provider.AWS.Route53.Enabled }}
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
