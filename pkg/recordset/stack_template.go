@@ -2,6 +2,8 @@ package recordset
 
 import (
 	"bytes"
+	"fmt"
+	"github.com/giantswarm/route53-manager/pkg/key"
 	"html/template"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -55,7 +57,20 @@ Resources:
       Type: CNAME
       TTL: '30'
       ResourceRecords:
-      - {{ .EtcdInstanceDNS }}
+      - {{ .EtcdELBDNS }}
+
+  {{ $hz := .HostedZoneID }}
+  {{- range $data.EtcdEniList }}
+  {{ .Name }}:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: {{ $hz }}
+      Name: '{{ .DNSName }}'
+      Type: A
+      TTL: '30'
+      ResourceRecords:
+      - {{ .IPAddress }}
+  {{- end }} 
 `
 )
 
@@ -123,8 +138,13 @@ func (m *Manager) getSourceStackData(clusterName string, isLegacyCluster bool) (
 		return nil, microerror.Mask(err)
 	}
 
-	etcInstanceNameTag := clusterName + "-master"
-	etcdInstanceDNS, err := m.getInstanceDNS(etcInstanceNameTag)
+	etcdELBName := clusterName + "-etcd"
+	etcdELBDNS, err := m.getELBDNS(etcdELBName)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+
+	eniList, err := m.getEniList(clusterName, key.BaseDomain(clusterName, m.targetHostedZoneName))
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
@@ -136,7 +156,8 @@ func (m *Manager) getSourceStackData(clusterName string, isLegacyCluster bool) (
 		IngressELBDNS:   ingressELBDNS,
 		IsLegacyCluster: isLegacyCluster,
 		APIELBDNS:       apiELBDNS,
-		EtcdInstanceDNS: etcdInstanceDNS,
+		EtcdELBDNS:      etcdELBDNS,
+		EtcdEniList:     eniList,
 	}
 	return output, nil
 }
@@ -159,28 +180,37 @@ func (m *Manager) getELBDNS(elbName string) (string, error) {
 	return *output.LoadBalancerDescriptions[0].DNSName, nil
 }
 
-func (m *Manager) getInstanceDNS(nameTag string) (string, error) {
-	input := &ec2.DescribeInstancesInput{
+func (m *Manager) getEniList(clusterID string, baseDomain string) ([]EtcdEni, error) {
+	var eniList []EtcdEni
+
+	input := &ec2.DescribeNetworkInterfacesInput{
 		Filters: []*ec2.Filter{
-			&ec2.Filter{
-				Name: aws.String("tag:Name"),
+			{
+				Name: aws.String(fmt.Sprintf("tag:%s", key.TagCluster)),
 				Values: []*string{
-					aws.String(nameTag),
+					aws.String(clusterID),
 				},
 			},
 		},
 	}
-	output, err := m.sourceClient.DescribeInstances(input)
+
+	output, err := m.sourceClient.DescribeNetworkInterfaces(input)
 	if err != nil {
-		return "", microerror.Mask(err)
+		return nil, microerror.Mask(err)
 	}
 
-	if len(output.Reservations) == 0 {
-		return "", microerror.Mask(tooFewResultsError)
-	}
-	if len(output.Reservations[0].Instances) == 0 {
-		return "", microerror.Mask(tooFewResultsError)
+	if len(output.NetworkInterfaces) == 0 {
+		return nil, microerror.Mask(tooFewResultsError)
 	}
 
-	return *output.Reservations[0].Instances[0].PrivateDnsName, nil
+	for i, nic := range output.NetworkInterfaces {
+		e := EtcdEni{
+			DNSName:   key.EtcdENIDNSName(baseDomain, i),
+			IPAddress: *nic.PrivateIpAddress,
+			Name:      key.EtcdEniResourceName(i),
+		}
+		eniList = append(eniList, e)
+	}
+
+	return eniList, nil
 }
