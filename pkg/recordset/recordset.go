@@ -100,7 +100,14 @@ type sourceStackData struct {
 	IngressELBDNS   string
 	IsLegacyCluster bool
 	APIELBDNS       string
-	EtcdInstanceDNS string
+	EtcdELBDNS      string
+	EtcdEniList     []EtcdEni
+}
+
+type EtcdEni struct {
+	DNSName   string
+	IPAddress string
+	Name      string
 }
 
 var (
@@ -571,6 +578,9 @@ func getManagedRecordSets(clusterID, baseDomain string) []string {
 		fmt.Sprintf("\\052.%s.%s.", clusterID, baseDomain), // \\052 - `*` wildcard record
 		fmt.Sprintf("api.%s.%s.", clusterID, baseDomain),
 		fmt.Sprintf("etcd.%s.%s.", clusterID, baseDomain),
+		fmt.Sprintf("etcd1.%s.%s.", clusterID, baseDomain),
+		fmt.Sprintf("etcd2.%s.%s.", clusterID, baseDomain),
+		fmt.Sprintf("etcd3.%s.%s.", clusterID, baseDomain),
 		fmt.Sprintf("ingress.%s.%s.", clusterID, baseDomain),
 	}
 }

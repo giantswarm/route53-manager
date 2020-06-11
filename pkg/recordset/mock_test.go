@@ -103,6 +103,17 @@ func (s *sourceClientMock) DescribeLoadBalancers(*elb.DescribeLoadBalancersInput
 
 	return output, nil
 }
+func (s *sourceClientMock) DescribeNetworkInterfaces(input *ec2.DescribeNetworkInterfacesInput) (*ec2.DescribeNetworkInterfacesOutput, error) {
+	output := &ec2.DescribeNetworkInterfacesOutput{
+		NetworkInterfaces: []*ec2.NetworkInterface{
+			&ec2.NetworkInterface{
+				PrivateIpAddress: aws.String("10.1.0.1"),
+			},
+		},
+	}
+
+	return output, nil
+}
 
 type targetClientMock struct {
 	createdStacks []string

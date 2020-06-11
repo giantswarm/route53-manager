@@ -36,8 +36,6 @@ workflows:
             - build-route53-manager
           # Needed to trigger job only on git tag.
           filters:
-            branches:
-              only: master
             tags:
               only: /^v.*/
 
@@ -53,43 +51,6 @@ workflows:
           filters:
             tags:
               only: /^v.*/
-
-      - hold-push-route53-manager-to-aliyun-pr:
-          type: approval
-          requires:
-            - build-route53-manager
-          # Needed to prevent job from being triggered on master branch.
-          filters:
-            branches:
-              ignore: master
-
-      - architect/push-to-docker-legacy:
-          name: push-route53-manager-to-aliyun-pr
-          context: architect
-          image: "registry-intl.cn-shanghai.aliyuncs.com/giantswarm/route53-manager"
-          username_envar: "ALIYUN_USERNAME"
-          password_envar: "ALIYUN_PASSWORD"
-          # Push to Aliyun should execute for non-master branches only once manually approved.
-          requires:
-            - hold-push-route53-manager-to-aliyun-pr
-          # Needed to prevent job being triggered for master branch.
-          filters:
-            branches:
-              ignore: master
-
-      # Push to Aliyun should execute without manual approval on master.
-      - architect/push-to-docker-legacy:
-          name: push-route53-manager-to-aliyun-master
-          context: architect
-          image: "registry-intl.cn-shanghai.aliyuncs.com/giantswarm/route53-manager"
-          username_envar: "ALIYUN_USERNAME"
-          password_envar: "ALIYUN_PASSWORD"
-          requires:
-            - build-route53-manager
-          # Needed to trigger job only on merge to master.
-          filters:
-            branches:
-              only: master
 
       - architect/push-to-app-collection:
           name: push-route53-manager-to-aws-app-collection
