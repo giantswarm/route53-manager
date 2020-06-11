@@ -3,14 +3,14 @@ package recordset
 import (
 	"bytes"
 	"fmt"
-	"github.com/giantswarm/route53-manager/pkg/key"
-	"html/template"
+	"text/template"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/giantswarm/microerror"
+	"github.com/giantswarm/route53-manager/pkg/key"
 )
 
 const (
@@ -60,7 +60,7 @@ Resources:
       - {{ .EtcdELBDNS }}
 
   {{ $hz := .HostedZoneID }}
-  {{- range $data.EtcdEniList }}
+  {{- range .EtcdEniList }}
   {{ .Name }}:
     Type: AWS::Route53::RecordSet
     Properties:
