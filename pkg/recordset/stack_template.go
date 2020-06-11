@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/giantswarm/microerror"
+
 	"github.com/giantswarm/route53-manager/pkg/key"
 )
 
