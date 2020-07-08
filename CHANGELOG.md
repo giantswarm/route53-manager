@@ -17,6 +17,6 @@ and this project's packages adheres to [Semantic Versioning](http://semver.org/s
 
 - Initial release to control plane catalog.
 
-[Unreleased]: https://github.com/giantswarm/route53-manager/compare/v1.0.0..HEAD
+[Unreleased]: https://github.com/giantswarm/route53-manager/compare/v1.0.0...HEAD
 
 [v1.0.0]: https://github.com/giantswarm/route53-manager/releases/tag/v1.0.0
