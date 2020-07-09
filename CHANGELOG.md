@@ -7,6 +7,8 @@ and this project's packages adheres to [Semantic Versioning](http://semver.org/s
 
 ## [Unreleased]
 
+## [1.0.1] - 2020-07-08
+
 ### Fixed
 
 - Fix clusterrole template to pass openapi validation.
@@ -17,6 +19,6 @@ and this project's packages adheres to [Semantic Versioning](http://semver.org/s
 
 - Initial release to control plane catalog.
 
-[Unreleased]: https://github.com/giantswarm/route53-manager/compare/v1.0.0...HEAD
-
+[Unreleased]: https://github.com/giantswarm/route53-manager/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/giantswarm/route53-manager/compare/v1.0.0...v1.0.1
 [v1.0.0]: https://github.com/giantswarm/route53-manager/releases/tag/v1.0.0
