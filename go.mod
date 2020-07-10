@@ -7,6 +7,6 @@ require (
 	github.com/giantswarm/microerror v0.2.0
 	github.com/giantswarm/microkit v0.2.1
 	github.com/giantswarm/micrologger v0.3.1
-	github.com/spf13/cobra v0.0.5
+	github.com/spf13/cobra v0.0.7
 	github.com/spf13/viper v1.6.2
 )
