@@ -4,11 +4,9 @@ metadata:
   name: route53-manager-configmap
   namespace: giantswarm
 data:
-{{ if not .Values.Installation.V1.Provider.AWS.Route53.Enabled }}
   config.yaml: |
+{{ if not .Values.Installation.V1.Provider.AWS.Route53.Enabled }}
     service:
       installation:
         name: '{{ .Values.Installation.V1.Name }}'
-{{ else }}
-  empty: ""
 {{ end }}
