@@ -1,4 +1,3 @@
-{{ if not .Values.Installation.V1.Provider.AWS.Route53.Enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,6 +5,7 @@ metadata:
   namespace: giantswarm
 data:
   config.yaml: |
+{{ if not .Values.Installation.V1.Provider.AWS.Route53.Enabled }}
     service:
       installation:
         name: '{{ .Values.Installation.V1.Name }}'
