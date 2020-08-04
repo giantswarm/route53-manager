@@ -7,6 +7,10 @@ and this project's packages adheres to [Semantic Versioning](http://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- Prevent empty resources on other AWS installations with route53 support.
+
 ## [1.0.1] - 2020-07-08
 
 ### Fixed
