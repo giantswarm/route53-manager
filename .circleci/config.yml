@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  architect: giantswarm/architect@0.10.0
+  architect: giantswarm/architect@2.2.0
 
 workflows:
   build:
@@ -58,7 +58,6 @@ workflows:
           app_name: "route53-manager"
           app_namespace: "monitoring"
           app_collection_repo: "aws-app-collection"
-          unique: "true"
           requires:
             - push-route53-manager-to-control-plane-app-catalog
           filters:
