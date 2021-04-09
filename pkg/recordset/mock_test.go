@@ -132,11 +132,11 @@ func (t *targetClientMock) DescribeStacks(input *cloudformation.DescribeStacksIn
 		return nil, mockClientError
 	}
 
-	for _, stack := range t.targetStacks {
+	for i, stack := range t.targetStacks {
 		if stack.StackName != nil && *stack.StackName == *input.StackName {
 			output := &cloudformation.DescribeStacksOutput{
 				Stacks: []*cloudformation.Stack{
-					&stack,
+					&t.targetStacks[i],
 				},
 			}
 
