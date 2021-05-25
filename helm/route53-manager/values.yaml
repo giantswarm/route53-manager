@@ -6,3 +6,8 @@ image:
 
 userID: 1000
 groupID: 1000
+
+codename: ""
+route53Manager:
+  enabled: true
+secretYaml: ""

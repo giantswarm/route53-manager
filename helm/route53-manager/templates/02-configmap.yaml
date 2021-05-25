@@ -5,8 +5,8 @@ metadata:
   namespace: giantswarm
 data:
   config.yaml: |
-{{ if not .Values.Installation.V1.Provider.AWS.Route53.Enabled }}
+{{ if .Values.route53Manager.enabled }}
     service:
       installation:
-        name: '{{ .Values.Installation.V1.Name }}'
+        name: '{{ .Values.codename }}'
 {{ end }}
