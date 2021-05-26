@@ -9,5 +9,5 @@ groupID: 1000
 
 codename: ""
 route53Manager:
-  enabled: true
+  enabled: false
 secretYaml: ""
