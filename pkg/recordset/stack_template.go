@@ -208,6 +208,16 @@ func (m *Manager) getEniList(clusterID string, baseDomain string) ([]EtcdEni, er
 		}
 		eniList = append(eniList, e)
 	}
+	// always add `etcd0` dns record to avoid issues with single master in china
+	if len(output.NetworkInterfaces) > 0 {
+		etcdRecordZero := EtcdEni{
+			// the key function will add `1` to the index so  the  dns name will be `etcd0` in this case
+			DNSName:   key.EtcdENIDNSName(baseDomain, -1),
+			IPAddress: *output.NetworkInterfaces[0].PrivateIpAddress,
+			Name:      key.EtcdEniResourceName(-1),
+		}
+		eniList = append(eniList, etcdRecordZero)
+	}
 
 	return eniList, nil
 }
