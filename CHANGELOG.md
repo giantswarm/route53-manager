@@ -7,6 +7,8 @@ and this project's packages adheres to [Semantic Versioning](http://semver.org/s
 
 ## [Unreleased]
 
+## [1.2.0] - 2021-06-03
+
 ### Changed
 
 - Always created `etcd0` record to avoid issues in China.
@@ -31,7 +33,8 @@ and this project's packages adheres to [Semantic Versioning](http://semver.org/s
 
 - Initial release to control plane catalog.
 
-[Unreleased]: https://github.com/giantswarm/route53-manager/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/giantswarm/route53-manager/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/giantswarm/route53-manager/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/giantswarm/route53-manager/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/giantswarm/route53-manager/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/giantswarm/route53-manager/compare/v1.0.0...v1.0.1
