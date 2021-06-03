@@ -7,6 +7,10 @@ and this project's packages adheres to [Semantic Versioning](http://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- Always created `etcd0` record to avoid issues in China.
+
 ## [1.1.0] - 2021-05-26
 
 ## [1.0.2] - 2020-08-04
