@@ -6,3 +6,6 @@ description: >-
 home: https://github.com/giantswarm/route53-manager
 version: [[ .Version ]]
 appVersion: [[ .AppVersion ]]
+annotations:
+  application.giantswarm.io/team: "firecracker"
+  config.giantswarm.io/version: 1.x.x
