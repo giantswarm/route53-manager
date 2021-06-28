@@ -7,6 +7,10 @@ and this project's packages adheres to [Semantic Versioning](http://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- Update Batch API version from `v1beta1` to `v1`.
+
 ## [1.2.0] - 2021-06-03
 
 ### Changed
