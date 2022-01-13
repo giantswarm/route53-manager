@@ -202,18 +202,7 @@ func (m *Manager) getEniList(clusterID string, baseDomain string) ([]EtcdEni, er
 	}
 
 	nicList := output.NetworkInterfaces
-
-	fmt.Printf("unsorted nic list: ")
-	for _, nic := range nicList {
-		fmt.Printf("%s ", getNICNameFromTag(nic.TagSet))
-	}
-
 	sortNetworkInterfacesByName(nicList)
-	fmt.Printf("# sorted nic list: ")
-	for _, nic := range nicList {
-		fmt.Printf("%s ", getNICNameFromTag(nic.TagSet))
-	}
-	fmt.Printf("\n")
 
 	for i, nic := range nicList {
 		e := EtcdEni{
