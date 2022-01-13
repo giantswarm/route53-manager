@@ -12,6 +12,7 @@ and this project's packages adheres to [Semantic Versioning](http://semver.org/s
 ### Changed
 
 - Update Batch API version from `v1beta1` to `v1`.
+- Sort all ENIs by the name before creating DNS record, to avoid wrong IP order.
 
 ## [1.2.0] - 2021-06-03
 
