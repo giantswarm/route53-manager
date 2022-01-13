@@ -3,6 +3,7 @@ package recordset
 import (
 	"bytes"
 	"fmt"
+	"sort"
 	"text/template"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -200,7 +201,21 @@ func (m *Manager) getEniList(clusterID string, baseDomain string) ([]EtcdEni, er
 		return nil, microerror.Mask(err)
 	}
 
-	for i, nic := range output.NetworkInterfaces {
+	nicList := output.NetworkInterfaces
+
+	fmt.Printf("unsorted nic list: ")
+	for _, nic := range nicList {
+		fmt.Printf("%s ", getNICNameFromTag(nic.TagSet))
+	}
+
+	sortNetworkInterfacesByName(nicList)
+	fmt.Printf("# sorted nic list: ")
+	for _, nic := range nicList {
+		fmt.Printf("%s ", getNICNameFromTag(nic.TagSet))
+	}
+	fmt.Printf("\n")
+
+	for i, nic := range nicList {
 		e := EtcdEni{
 			DNSName:   key.EtcdENIDNSName(baseDomain, i),
 			IPAddress: *nic.PrivateIpAddress,
@@ -209,15 +224,33 @@ func (m *Manager) getEniList(clusterID string, baseDomain string) ([]EtcdEni, er
 		eniList = append(eniList, e)
 	}
 	// always add `etcd0` dns record to avoid issues with single master in china
-	if len(output.NetworkInterfaces) > 0 {
+	if len(nicList) > 0 {
 		etcdRecordZero := EtcdEni{
 			// the key function will add `1` to the index so  the  dns name will be `etcd0` in this case
 			DNSName:   key.EtcdENIDNSName(baseDomain, -1),
-			IPAddress: *output.NetworkInterfaces[0].PrivateIpAddress,
+			IPAddress: *nicList[0].PrivateIpAddress,
 			Name:      key.EtcdEniResourceName(-1),
 		}
 		eniList = append(eniList, etcdRecordZero)
 	}
 
 	return eniList, nil
+}
+
+func sortNetworkInterfacesByName(nicList []*ec2.NetworkInterface) {
+	sort.Slice(nicList, func(i, j int) bool {
+		nameI := getNICNameFromTag(nicList[i].TagSet)
+		nameJ := getNICNameFromTag(nicList[j].TagSet)
+		return nameI < nameJ
+	})
+}
+
+func getNICNameFromTag(tags []*ec2.Tag) string {
+	for _, tag := range tags {
+		if *tag.Key == "Name" {
+			return *tag.Value
+		}
+	}
+	// failed to find name tag
+	return ""
 }
