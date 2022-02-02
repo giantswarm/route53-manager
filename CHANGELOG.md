@@ -7,9 +7,12 @@ and this project's packages adheres to [Semantic Versioning](http://semver.org/s
 
 ## [Unreleased]
 
+## [1.3.0] - 2022-01-13
+
 ### Changed
 
 - Update Batch API version from `v1beta1` to `v1`.
+- Sort all ENIs by the name before creating DNS record, to avoid wrong IP order.
 
 ## [1.2.0] - 2021-06-03
 
@@ -37,7 +40,8 @@ and this project's packages adheres to [Semantic Versioning](http://semver.org/s
 
 - Initial release to control plane catalog.
 
-[Unreleased]: https://github.com/giantswarm/route53-manager/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/giantswarm/route53-manager/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/giantswarm/route53-manager/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/giantswarm/route53-manager/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/giantswarm/route53-manager/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/giantswarm/route53-manager/compare/v1.0.1...v1.0.2
