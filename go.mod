@@ -3,7 +3,7 @@ module github.com/giantswarm/route53-manager
 go 1.14
 
 require (
-	github.com/aws/aws-sdk-go v1.42.46
+	github.com/aws/aws-sdk-go v1.42.50
 	github.com/giantswarm/microerror v0.4.0
 	github.com/giantswarm/microkit v1.0.0
 	github.com/giantswarm/micrologger v0.6.0
