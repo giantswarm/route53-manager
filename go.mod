@@ -3,12 +3,12 @@ module github.com/giantswarm/route53-manager
 go 1.14
 
 require (
-	github.com/aws/aws-sdk-go v1.43.1
+	github.com/aws/aws-sdk-go v1.44.254
 	github.com/giantswarm/microerror v0.4.0
 	github.com/giantswarm/microkit v1.0.0
 	github.com/giantswarm/micrologger v0.6.0
-	github.com/spf13/cobra v1.3.0
-	github.com/spf13/viper v1.10.1
+	github.com/spf13/cobra v1.7.0
+	github.com/spf13/viper v1.15.0
 )
 
 replace (
