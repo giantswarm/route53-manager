@@ -2,7 +2,7 @@ name: route53-manager
 namespace: giantswarm
 image:
   repository: giantswarm/route53-manager
-  tag: [[ .Version ]]
+  tag: "[[ .Version ]]"
 
 userID: 1000
 groupID: 1000
