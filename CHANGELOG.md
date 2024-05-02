@@ -7,6 +7,14 @@ and this project's packages adheres to [Semantic Versioning](http://semver.org/s
 
 ## [Unreleased]
 
+### Added
+
+- Add global.podSecurityStandards.enforced value for PSS migration.
+
+### Changed
+
+- Set up securityContext to comply with PSS policies.
+
 ## [1.3.0] - 2022-01-13
 
 ### Changed

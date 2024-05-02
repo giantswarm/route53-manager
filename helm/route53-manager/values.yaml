@@ -11,3 +11,7 @@ codename: ""
 route53Manager:
   enabled: false
 secretYaml: ""
+
+global:
+  podSecurityStandards:
+    enforced: false

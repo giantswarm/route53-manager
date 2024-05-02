@@ -29,11 +29,21 @@ spec:
                 path: secret.yaml
           serviceAccountName: {{ .Values.name }}
           securityContext:
+            runAsNonRoot: true
             runAsUser: {{ .Values.userID }}
             runAsGroup: {{ .Values.groupID }}
+            seccompProfile:
+              type: RuntimeDefault
           containers:
           - name: route53-manager
             image: "{{ .Values.registry.domain }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+            securityContext:
+              allowPrivilegeEscalation: false
+              seccompProfile:
+                type: RuntimeDefault
+              capabilities:
+                drop:
+                - ALL
             volumeMounts:
             - name: route53-manager-configmap
               mountPath: /var/run/route53-manager/configmap/
