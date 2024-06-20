@@ -7,6 +7,8 @@ and this project's packages adheres to [Semantic Versioning](http://semver.org/s
 
 ## [Unreleased]
 
+## [1.5.0] - 2024-06-20
+
 ### Changed
 
 - Add  EC2 ENI filter to filter out CAPI based ENIs. THis is encessery during migration.
@@ -54,7 +56,8 @@ and this project's packages adheres to [Semantic Versioning](http://semver.org/s
 
 - Initial release to control plane catalog.
 
-[Unreleased]: https://github.com/giantswarm/route53-manager/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/giantswarm/route53-manager/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/giantswarm/route53-manager/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/giantswarm/route53-manager/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/giantswarm/route53-manager/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/giantswarm/route53-manager/compare/v1.1.0...v1.2.0
