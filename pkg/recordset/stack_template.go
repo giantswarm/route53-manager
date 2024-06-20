@@ -193,6 +193,12 @@ func (m *Manager) getEniList(clusterID string, baseDomain string) ([]EtcdEni, er
 					aws.String(clusterID),
 				},
 			},
+			{
+				Name: aws.String("tag:aws:cloudformation:stack-name"),
+				Values: []*string{
+					aws.String(fmt.Sprintf("cluster-%s-tccpn", clusterID)),
+				},
+			},
 		},
 	}
 

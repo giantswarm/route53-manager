@@ -7,6 +7,10 @@ and this project's packages adheres to [Semantic Versioning](http://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- Add  EC2 ENI filter to filter out CAPI based ENIs. THis is encessery during migration.
+
 ## [1.4.0] - 2024-05-02
 
 ### Added
