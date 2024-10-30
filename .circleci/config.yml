@@ -5,45 +5,53 @@ orbs:
 workflows:
   build:
     jobs:
-      - architect/go-build:
-          name: build-route53-manager
-          context: architect
-          binary: route53-manager
-          filters:
-            tags:
-              only: /^v.*/
+    - architect/go-build:
+        name: build-route53-manager
+        context: architect
+        binary: route53-manager
+        filters:
+          tags:
+            only: /^v.*/
 
-      - architect/push-to-registries:
-          context: architect
-          name: push-to-registries
-          requires:
-            - build-route53-manager
-          filters:
-            tags:
-              only: /^v.*/
+    - architect/push-to-registries:
+        context: architect
+        name: push-to-registries
+        requires:
+        - build-route53-manager
+        filters:
+          tags:
+            only: /^v.*/
 
-      - architect/push-to-app-catalog:
-          name: push-route53-manager-to-control-plane-app-catalog
-          context: architect
-          app_catalog: "control-plane-catalog"
-          app_catalog_test: "control-plane-test-catalog"
-          chart: "route53-manager"
-          requires:
-            - push-to-registries
-          filters:
-            tags:
-              only: /^v.*/
+          branches:
+            ignore:
+            - main
+            - master
+    - architect/push-to-app-catalog:
+        name: push-route53-manager-to-control-plane-app-catalog
+        context: architect
+        app_catalog: control-plane-catalog
+        app_catalog_test: control-plane-test-catalog
+        chart: route53-manager
+        requires:
+        - push-to-registries
+        filters:
+          tags:
+            only: /^v.*/
 
-      - architect/push-to-app-collection:
-          name: push-route53-manager-to-aws-app-collection
-          context: architect
-          app_name: "route53-manager"
-          app_namespace: "monitoring"
-          app_collection_repo: "aws-app-collection"
-          requires:
-            - push-route53-manager-to-control-plane-app-catalog
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v.*/
+          branches:
+            ignore:
+            - main
+            - master
+    - architect/push-to-app-collection:
+        name: push-route53-manager-to-aws-app-collection
+        context: architect
+        app_name: route53-manager
+        app_namespace: monitoring
+        app_collection_repo: aws-app-collection
+        requires:
+        - push-route53-manager-to-control-plane-app-catalog
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v.*/
