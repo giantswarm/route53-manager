@@ -7,6 +7,8 @@ and this project's packages adheres to [Semantic Versioning](http://semver.org/s
 
 ## [Unreleased]
 
+## [1.5.1] - 2025-02-25
+
 ### Fixed
 
 - Get all the pages when listing CloudFormation stacks.
@@ -60,7 +62,8 @@ and this project's packages adheres to [Semantic Versioning](http://semver.org/s
 
 - Initial release to control plane catalog.
 
-[Unreleased]: https://github.com/giantswarm/route53-manager/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/giantswarm/route53-manager/compare/v1.5.1...HEAD
+[1.5.1]: https://github.com/giantswarm/route53-manager/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/giantswarm/route53-manager/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/giantswarm/route53-manager/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/giantswarm/route53-manager/compare/v1.2.0...v1.3.0
