@@ -7,6 +7,10 @@ and this project's packages adheres to [Semantic Versioning](http://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- Get all the pages when listing CloudFormation stacks.
+
 ## [1.5.0] - 2024-06-20
 
 ### Changed

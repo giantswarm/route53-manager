@@ -206,36 +206,46 @@ func (m *Manager) targetStacks() ([]cloudformation.Stack, error) {
 }
 
 func getStacks(cl client.StackDescribeLister, res []*regexp.Regexp, installation string) ([]cloudformation.Stack, error) {
+	var result []cloudformation.Stack
+
 	input := &cloudformation.ListStacksInput{
 		StackStatusFilter: stackStatusValid,
 	}
-	output, err := cl.ListStacks(input)
-	if err != nil {
-		return nil, microerror.Mask(err)
-	}
 
-	var result []cloudformation.Stack
-
-	for _, item := range output.StackSummaries {
-		// filter stack by name.
-		if !validStackName(*item, res) {
-			continue
-		}
-
-		// filter stack by installation tag.
-		describeInput := &cloudformation.DescribeStacksInput{
-			StackName: aws.String(*item.StackId),
-		}
-		stacks, err := cl.DescribeStacks(describeInput)
+	for {
+		output, err := cl.ListStacks(input)
 		if err != nil {
 			return nil, microerror.Mask(err)
 		}
-		key := validStackInstallationTag(stacks, installation)
-		if key == -1 {
-			continue
+
+		for _, item := range output.StackSummaries {
+			// filter stack by name.
+			if !validStackName(*item, res) {
+				continue
+			}
+
+			// filter stack by installation tag.
+			describeInput := &cloudformation.DescribeStacksInput{
+				StackName: aws.String(*item.StackId),
+			}
+			stacks, err := cl.DescribeStacks(describeInput)
+			if err != nil {
+				return nil, microerror.Mask(err)
+			}
+			key := validStackInstallationTag(stacks, installation)
+			if key == -1 {
+				continue
+			}
+
+			result = append(result, *stacks.Stacks[key])
 		}
 
-		result = append(result, *stacks.Stacks[key])
+		// If there is no NextToken, break out of the loop.
+		if output.NextToken == nil {
+			break
+		}
+
+		input.NextToken = output.NextToken
 	}
 
 	return result, nil
